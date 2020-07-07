@@ -43,7 +43,7 @@ jobs:
                 at: /home/circleci/project
             - add_ssh_keys:
                 fingerprints:
-                  - "ac:91:66:6b:c2:7a:f7:5e:72:4d:1c:0c:ac:d0:94:f3"
+                  - "b4:38:42:0f:3e:2b:f8:92:f9:ec:a9:14:3a:f0:d0:4b"
             - run:
                 command: ./sbin/deploy.sh $BASTION_PUBLIC_IP $TRAINING_COHORT
 
