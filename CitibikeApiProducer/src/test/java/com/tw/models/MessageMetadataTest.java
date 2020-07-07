@@ -9,7 +9,7 @@ public class MessageMetadataTest {
 
     @Test
     public void shouldReturnStringWithMetadataAndPayload() {
-        long ingestionTime = DateUtil.parse("2017-01-01").getTime();
+        long ingestionTime = 1483246800000l;
         String producerId = "Producer-id";
         String messageUUID = "123e4567-e89b-12d3-a456-426655440000";
         long size = 12;
@@ -24,3 +24,4 @@ public class MessageMetadataTest {
         assertEquals(expected, metadata.toString());
     }
 }
+    
