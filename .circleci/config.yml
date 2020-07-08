@@ -65,11 +65,7 @@ workflows:
                         only: 
                             - master
                             - start
-            - approve-deploy:
-                type: approval
-                requires: 
-                    - build
             - deploy:
                 requires:
-                    - approve-deploy
+                    - build
 
