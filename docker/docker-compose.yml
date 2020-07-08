@@ -140,6 +140,8 @@ services:
         networks:
           - streaming-data-internal
         restart: on-failure
+        environment:
+          - SPARK_SUBMIT_OPTIONS=--driver-memory 550m --executor-memory=100m
 
     station-transformer-nyc:
         build:
