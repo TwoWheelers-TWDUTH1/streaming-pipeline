@@ -59,6 +59,8 @@ services:
           - zookeeper-seed
         networks:
           - streaming-data-internal
+        environment:
+          - JAVA_OPTIONS=-Xmx100m
 
     station-status-producer:
         build:
@@ -69,6 +71,8 @@ services:
           - zookeeper-seed
         networks:
           - streaming-data-internal
+        environment:
+          - JAVA_OPTIONS=-Xmx100m
 
     station-san-francisco-producer:
         build:
@@ -79,6 +83,8 @@ services:
           - zookeeper-seed
         networks:
           - streaming-data-internal
+        environment:
+          - JAVA_OPTIONS=-Xmx100m
 
     raw-station-information-data-saver:
         build:
