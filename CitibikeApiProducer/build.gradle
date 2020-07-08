@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.1.RELEASE")
+        classpath 'com.github.ksoichiro:gradle-console-reporter:0.6.2'
     }
 }
 
@@ -12,6 +13,8 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'jacoco'
+apply plugin: 'com.github.ksoichiro.console.reporter'
 
 bootJar {
     version = '0.1.0'
@@ -38,4 +41,25 @@ test {
         junitXml.enabled = true
         html.enabled = false
     }
+}
+
+jacoco {
+    toolVersion = "0.8.3"
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.enabled = false
+        csv.enabled = false
+        html.enabled = true
+        html.destination = file("$buildDir/reports/coverage")
+    }
+}
+
+task testCoverage() {
+    group = "verification"
+    description = "Runs the unit tests with coverage."
+    dependsOn(":test", ":jacocoTestReport", ":check" )
+    tasks.jacocoTestReport.mustRunAfter(tasks.test)
+    tasks.check.mustRunAfter(tasks.jacocoTestReport)
 }
