@@ -10,6 +10,7 @@ services:
           - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
           - KAFKA_ADVERTISED_HOST_NAME=kafka
           - KAFKA_ADVERTISED_PORT=9092
+          - KAFKA_HEAP_OPTS="-Xmx512m -Xms512M"
         depends_on:
           - zookeeper
 
