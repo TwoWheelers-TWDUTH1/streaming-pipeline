@@ -73,6 +73,13 @@ object SmokeTest {
   }
 
   def main(args: Array[String]): Unit = {
+    if (args.length != 1) {
+      val message = "Argument required: <file>"
+      throw new IllegalArgumentException(message)
+    }
+
+    val inputFile = args(0)
+
     val spark = SparkSession.builder
       .appName("SmokeTest")
       .getOrCreate()
@@ -92,7 +99,7 @@ object SmokeTest {
     val output = spark.read
       .option("inferSchema", "true")
       .option("header", "true")
-      .csv("./src/main/resources/example-output.csv")
+      .csv(inputFile)
       .cache()
     val cw = AmazonCloudWatchClientBuilder.defaultClient
     runAssertions(output, cw, System.currentTimeMillis() / 1000)
