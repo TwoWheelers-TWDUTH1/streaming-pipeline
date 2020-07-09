@@ -1,0 +1,5 @@
+bikes_available,docks_available,is_renting,is_returning,last_updated,station_id,name,latitude,longitude
+2,16,true,true,1594115085,3210,Pershing Field,40.742677141,-74.051788633
+1,20,true,true,1594115085,3606,49 Ave & 21 St,,-73.948852
+2,28,true,true,1594115085,3959,Edgecombe Ave & W 145 St,40.823498,-73.94386
+11,22,true,true,1594115085,3414,Bergen St & Flatbush Ave,40.6809447234773,-73.9756733179092
