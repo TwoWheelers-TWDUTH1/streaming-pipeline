@@ -11,7 +11,7 @@ import org.scalatest.mockito.MockitoSugar
 class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with GivenWhenThen with BeforeAndAfter {
   feature("Apply station status transformations to data frame") {
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
-    var cloudWatchMock: AmazonCloudWatch = mock[AmazonCloudWatch]
+    val cloudWatchMock: AmazonCloudWatch = mock[AmazonCloudWatch]
 
     before {
       Mockito.reset(cloudWatchMock)
@@ -24,7 +24,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
         .csv("./src/test/resources/valid.csv")
         .cache()
 
-      SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
+      SmokeTest.runAssertions(validDF, cloudWatchMock, 1594115095)
     }
 
     scenario("explodes when there are null longitudes") {
@@ -35,7 +35,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, 1594115095)
       }
       assert(exception.getMessage.contains("longitude has null values"))
     }
@@ -48,7 +48,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, 1594115095)
       }
 
       assert(exception.getMessage.contains("latitude has null values"))
@@ -62,7 +62,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, 1594115095)
       }
 
       assert(exception.getMessage.contains("there are duplicate stations"))
@@ -76,7 +76,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, 1594115095)
       }
 
       assert(exception.getMessage.contains("negative counts"))
