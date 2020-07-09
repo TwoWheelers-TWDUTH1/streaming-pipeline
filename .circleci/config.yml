@@ -16,7 +16,7 @@ jobs:
                 keys:
                     - scala-dependencies-{{ checksum "./RawDataSaver/build.sbt" }}-{{ checksum "./StationConsumer/build.sbt"}}-{{ checksum "./StationTransformerNYC/build.sbt"}}
             - run:
-                command: ./sbin/buildAll.sh               
+                command: ./sbin/buildAll.sh
             - store_test_results:
                 path: ./CitibikeApiProducer/build/test-results
             - store_test_results:
@@ -25,6 +25,8 @@ jobs:
                 path: ./StationConsumer/target/test-reports
             - store_test_results:
                 path: ./StationTransformerNYC/target/test-reports
+            - store_test_results:
+                path: ./SmokeTest/target/test-reports
             - persist_to_workspace:
                 root: /home/circleci/project
                 paths:
@@ -32,6 +34,7 @@ jobs:
                     - RawDataSaver/target/
                     - StationConsumer/target/
                     - StationTransformerNYC/target/
+                    - SmokeTest/target/
             - run:
                 command: ls /home/circleci/project/
             - save_cache:
@@ -62,7 +65,7 @@ workflows:
             - build:
                 filters:
                     branches:
-                        only: 
+                        only:
                             - master
                             - start
             - deploy:

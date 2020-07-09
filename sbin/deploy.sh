@@ -151,6 +151,10 @@ scp StationConsumer/target/scala-2.11/tw-station-consumer_2.11-0.0.1.jar emr-mas
 scp StationTransformerNYC/target/scala-2.11/tw-station-transformer-nyc_2.11-0.0.1.jar emr-master.${TRAINING_COHORT}.training:/tmp/
 echo "====Station Consumers Jar Copied to EMR===="
 
+echo "====Copy Data Smoke Test to EMR===="
+scp SmokeTest/target/scala-2.11/tw-data-smoke-test_2.11-0.0.1 emr-master.${TRAINING_COHORT}.training:/tmp/
+echo "====Data Smoke Test to EMR Copied to EMR===="
+
 scp sbin/go.sh emr-master.${TRAINING_COHORT}.training:/tmp/go.sh
 
 ssh emr-master.${TRAINING_COHORT}.training <<EOF
