@@ -121,24 +121,27 @@ object SmokeTest {
       .appName("SmokeTest")
       .getOrCreate()
 
-    /*
-    Check in the file that there is a long and lat for each station in the json.
-      - [x] check schema for double
-      - [x] count where null == 0
-    Confirm that each station id is listed only once.
-      - [x] groupby station id, count having > 1 == len(0)
-    Bikes Available should be a non-negaitve number
-      - [ ] where(...)
-    Docks Available should be a non-negaitve number
-      - [ ] where(...)
-    */
-
     val output = spark.read
       .option("inferSchema", "true")
       .option("header", "true")
       .csv("./src/main/resources/example-output.csv")
       .cache()
     val cw = AmazonCloudWatchClientBuilder.defaultClient
-    runAssertions(output, cw, System.currentTimeMillis() / 1000)
-  }
+    val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000)
+
+    val failures = probes.filter( probe => {
+      probe._2 == true
+    })
+
+    val ageProbe = probes.filter( probe => {
+      probe._1 == "station-last-updated-age"
+    })
+
+    println(ageProbe)
+
+    if(failures.length > 0) {
+      println(failures)
+      System.exit(1)
+    }
+   }
 }

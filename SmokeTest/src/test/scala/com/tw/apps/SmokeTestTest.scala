@@ -62,8 +62,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
       verify(cloudWatchMock, times(1)).putMetricData(requestCaptor.capture())
 
       val request = requestCaptor.getValue
-      println(request)
-
+      request.getNamespace shouldEqual("stationMart-monitoring")
       val metricDatum = request.getMetricData.get(0)
       metricDatum.getValue shouldEqual(OVER_NINE_THOUSAND)
       metricDatum.getMetricName shouldEqual("some-probe-metric")
