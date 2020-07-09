@@ -1,12 +1,21 @@
 package com.tw.apps
 
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch
+import com.amazonaws.services.cloudwatch.model.{PutMetricDataRequest, StandardUnit}
 import org.apache.spark.sql.SparkSession
+import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.verify
 import org.scalatest._
+import org.scalatest.mockito.MockitoSugar
 
-class SmokeTestTest extends FeatureSpec with Matchers with GivenWhenThen {
-
+class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with GivenWhenThen with BeforeAndAfter {
   feature("Apply station status transformations to data frame") {
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
+    var cloudWatchMock: AmazonCloudWatch = mock[AmazonCloudWatch]
+
+    before {
+      Mockito.reset(cloudWatchMock)
+    }
 
     scenario("passes and returns the latest `last_updated`") {
       val validDF = spark.read
@@ -15,7 +24,7 @@ class SmokeTestTest extends FeatureSpec with Matchers with GivenWhenThen {
         .csv("./src/test/resources/valid.csv")
         .cache()
 
-      SmokeTest.runAssertions(validDF)
+      SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
     }
 
     scenario("explodes when there are null longitudes") {
@@ -26,7 +35,7 @@ class SmokeTestTest extends FeatureSpec with Matchers with GivenWhenThen {
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
       }
       assert(exception.getMessage.contains("longitude has null values"))
     }
@@ -39,7 +48,7 @@ class SmokeTestTest extends FeatureSpec with Matchers with GivenWhenThen {
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
       }
 
       assert(exception.getMessage.contains("latitude has null values"))
@@ -53,7 +62,7 @@ class SmokeTestTest extends FeatureSpec with Matchers with GivenWhenThen {
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
       }
 
       assert(exception.getMessage.contains("there are duplicate stations"))
@@ -67,10 +76,29 @@ class SmokeTestTest extends FeatureSpec with Matchers with GivenWhenThen {
         .cache()
 
       val exception = intercept[AssertionError] {
-        SmokeTest.runAssertions(validDF)
+        SmokeTest.runAssertions(validDF, cloudWatchMock, System.currentTimeMillis() / 1000)
       }
 
       assert(exception.getMessage.contains("negative counts"))
+    }
+
+    scenario("reports the median age of station updates") {
+      val validDF = spark.read
+        .option("inferSchema", "true")
+        .option("header", "true")
+        .csv("./src/test/resources/valid.csv")
+        .cache()
+
+      SmokeTest.runAssertions(validDF, cloudWatchMock, 1594115095)
+      val requestCaptor : ArgumentCaptor[PutMetricDataRequest] = ArgumentCaptor.forClass(classOf[PutMetricDataRequest])
+
+      verify(cloudWatchMock).putMetricData(requestCaptor.capture())
+      val request = requestCaptor.getValue
+      val metricDatum = request.getMetricData.get(0)
+
+      metricDatum.getValue shouldEqual(10.0)
+      metricDatum.getUnit shouldEqual(StandardUnit.Seconds.toString)
+      request.getNamespace shouldEqual("stationMart-monitoring")
     }
   }
 }

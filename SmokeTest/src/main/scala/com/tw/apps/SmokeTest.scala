@@ -1,9 +1,10 @@
 package com.tw.apps
 
+import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
+import com.amazonaws.services.cloudwatch.model.{MetricDatum, PutMetricDataRequest, StandardUnit}
 import org.apache.spark.sql
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
-
 
 object SmokeTest {
 
@@ -26,12 +27,33 @@ object SmokeTest {
     true
   }
 
-  def runAssertions(df: DataFrame) = {
+  def assertThatUpdatesAreRecent(df: DataFrame, cw: AmazonCloudWatch, currentTimeInSeconds: Long): Unit = {
+    val medianLastUpdateUnixTimestamp = df.stat.approxQuantile("last_updated", Array(0.5), 0.25)(0)
+    val currentUnixTimestamp = currentTimeInSeconds
+
+    val diffInSeconds = currentUnixTimestamp - medianLastUpdateUnixTimestamp
+
+    val datum = new MetricDatum()
+      .withMetricName("station-last-updated-age")
+      .withUnit(StandardUnit.Seconds)
+      .withValue(diffInSeconds)
+
+    val request = new PutMetricDataRequest()
+      .withNamespace("stationMart-monitoring")
+      .withMetricData(datum)
+
+    cw.putMetricData(request)
+
+    assert(diffInSeconds < 10 * 60, s"Median station update age is ${diffInSeconds}s but was supposed to be less than 600s")
+  }
+
+
+  def runAssertions(df: DataFrame, cw: AmazonCloudWatch, currentTimeInSeconds: Long) = {
     assertThatStationIdsAreUnique(df)
     assertThatLatitudeAndLongitudeAreCorrectlyTyped(df)
     assertThatLatitudeAndLongitudeAreNeverNull(df)
     assertThatNoCountsAreNegative(df)
-
+    assertThatUpdatesAreRecent(df, cw, currentTimeInSeconds)
     true
   }
 
@@ -72,7 +94,7 @@ object SmokeTest {
       .option("header", "true")
       .csv("./src/main/resources/example-output.csv")
       .cache()
-
-    runAssertions(output)
+    val cw = AmazonCloudWatchClientBuilder.defaultClient
+    runAssertions(output, cw, System.currentTimeMillis() / 1000)
   }
 }

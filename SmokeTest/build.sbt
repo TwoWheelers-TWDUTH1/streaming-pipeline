@@ -12,8 +12,11 @@ lazy val root = (project in file(".")).
     name := "tw-data-smoke-test",
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.5" % "test",
       "org.apache.spark" %% "spark-core" % sparkVersion,
-      "org.apache.spark" %% "spark-sql" % sparkVersion
+      "org.apache.spark" %% "spark-sql" % sparkVersion,
+      "com.amazonaws" % "aws-java-sdk" % "1.11.818",
+
+      "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+      "org.mockito" % "mockito-core" % "3.3.3" % "test"
     )
   )
