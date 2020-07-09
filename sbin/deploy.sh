@@ -180,6 +180,6 @@ echo "====Station Consumers Deployed===="
 
 echo "====Setting Cron Jobs===="
 
-echo "*/10 * * * * hadoop /usr/bin/spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.SmokeTest --name DataSmokeTest  --driver-memory 500M --conf spark.executor.memory=2g --conf spark.cores.max=1 /tmp/tw-data-smoke-test_2.11-0.0.1.jar   hdfs://emr-master.${TRAINING_COHORT}.training:8020/tw/stationMart/data >>/var/log/data-smoke-test.cron.log 2>&1" | sudo tee -a /etc/cron.d/data-smoke-test
+echo "*/10 * * * * hadoop /usr/bin/spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.SmokeTest --name DataSmokeTest  --driver-memory 500M --conf spark.executor.memory=2g --conf spark.cores.max=1 /tmp/tw-data-smoke-test_2.11-0.0.1.jar   hdfs://emr-master.${TRAINING_COHORT}.training:8020/tw/stationMart/data >>/var/log/data-smoke-test.cron.log 2>&1" | sudo tee /etc/cron.d/data-smoke-test
 
 EOF
