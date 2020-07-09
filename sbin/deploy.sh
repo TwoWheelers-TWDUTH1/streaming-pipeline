@@ -52,10 +52,10 @@ export kafka_server="kafka.${TRAINING_COHORT}.training:9092"
 export zk_command="zookeeper-shell localhost:2181"
 sh /tmp/zookeeper-seed.sh
 
-/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=3600000 --alter --entity-name station_data_sf
-/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=3600000 --alter --entity-name station_data_nyc
-/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=3600000 --alter --entity-name station_information
-/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=3600000 --alter --entity-name station_status
+/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=18000000 --alter --entity-name station_data_sf
+/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=18000000 --alter --entity-name station_data_nyc
+/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=18000000 --alter --entity-name station_information
+/bin/kafka-configs --entity-type topics --zookeeper localhost:2181 --add-config retention.ms=18000000 --alter --entity-name station_status
 EOF
 
 echo "====Inserted app config in zookeeper===="
