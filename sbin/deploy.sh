@@ -48,12 +48,12 @@ scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-se
 ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
 
-ZK_BROKER_LIST=$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
+zk_broker_list=$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
+emr_arn=$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
 
 export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
-//export kafka_server="kafka.${TRAINING_COHORT}.training:9092"
-export kafka_server="$(aws kafka get-bootstrap-brokers --cluster-arn "$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)" | jq .BootstrapBrokerStringTls -r)"
-export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell ${ZK_BROKER_LIST}"
+export kafka_server="$(aws kafka get-bootstrap-brokers --cluster-arn "$(emr_arn)" | jq .BootstrapBrokerStringTls -r)"
+export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell ${zk_broker_list}"
 sh /tmp/zookeeper-seed.sh
 EOF
 
