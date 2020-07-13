@@ -22,7 +22,7 @@ class CloudWatchSparkListener(appName: String = "ApplicationName") extends Strea
   val dimensionsMap = new HashMap[String, String]()
   val cw: AmazonCloudWatch = AmazonCloudWatchClientBuilder.defaultClient()
   val jobFlowInfoFile = "/mnt/var/lib/info/job-flow.json"
-  val jobFlowId: String = getJobFlowId()
+  val jobFlowId: String = parseJsonWithJackson(Source.fromFile(jobFlowInfoFile)).get("jobFlowId").mkString
 
   override def onQueryStarted(event: QueryStartedEvent): Unit = {
     log.info("Cloudwatch Streaming Listener, onQueryStarted: " + appName)
@@ -43,10 +43,6 @@ class CloudWatchSparkListener(appName: String = "ApplicationName") extends Strea
     val attrMapper = new ObjectMapper() with ScalaObjectMapper
     attrMapper.registerModule(DefaultScalaModule)
     attrMapper.readValue[Map[String, Object]](json.reader())
-  }
-
-  def getJobFlowId: String = {
-    parseJsonWithJackson(Source.fromFile(jobFlowInfoFile)).get("jobFlowId").mkString
   }
 
   def pushMetric(dimensionItems: Map[String, String], metricName: String, value: Double, unit: StandardUnit) {
