@@ -38,9 +38,9 @@ object StationLocationApp {
       .appName(appName)
       .getOrCreate()
 
-    val batchInterval = Duration(1000) //millis
     val cwListener = new CloudWatchSparkListener(appName)
-    new StreamingContext(spark.sparkContext, batchInterval).addStreamingListener(cwListener)
+
+    spark.streams.addListener(cwListener)
 
     val savedStream = spark.readStream
       .format("kafka")

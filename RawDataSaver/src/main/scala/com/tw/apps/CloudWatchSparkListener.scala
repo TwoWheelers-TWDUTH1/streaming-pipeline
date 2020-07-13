@@ -7,52 +7,50 @@ import java.util
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
 import org.apache.log4j.Logger
+import org.apache.spark.sql.streaming.StreamingQueryListener
+import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 import org.apache.spark.streaming.scheduler.{StreamingListener, _}
 
 import scala.collection.mutable.{HashMap, Map}
 
-class CloudWatchSparkListener(appName: String = "ApplicationName") extends StreamingListener {
+class CloudWatchSparkListener(appName: String = "ApplicationName") extends StreamingQueryListener {
 
   val log = Logger.getLogger(getClass.getName)
   val dimensionsMap = new HashMap[String, String]()
   val cw = AmazonCloudWatchClientBuilder.defaultClient()
 
-  /**
-    * This method executes when a Spark Streaming batch completes.
-    *
-    * @param batchCompleted Class having information on the completed batch
-    */
+//  override def onBatchCompleted(batchCompleted: StreamingListenerBatchCompleted): Unit = {
+//    log.info("CloudWatch Streaming Listener, onBatchCompleted:" + appName)
+//
+//    // write performance metrics to CloutWatch Metrics
+//    writeBatchStatsToCloudWatch(batchCompleted)
+//
+//  }
+//
+//  override def onReceiverError(receiverError: StreamingListenerReceiverError): Unit = {
+//    log.warn("CloudWatch Streaming Listener, onReceiverError:" + appName)
+//
+//    writeRecieverStatsToCloudWatch(receiverError)
+//  }
 
-  override def onBatchCompleted(batchCompleted: StreamingListenerBatchCompleted): Unit = {
-    log.info("CloudWatch Streaming Listener, onBatchCompleted:" + appName)
-
-    // write performance metrics to CloutWatch Metrics
-    writeBatchStatsToCloudWatch(batchCompleted)
-
+  override def onQueryStarted(event: QueryStartedEvent): Unit = {
+    pushMetric(dimensionsMap, "started", 1.0, StandardUnit.Count)
   }
 
-  /**
-    * This method executes when a Spark Streaming batch completes.
-    *
-    * @param receiverError Class having information on the reciever Errors
-    */
-
-  override def onReceiverError(receiverError: StreamingListenerReceiverError): Unit = {
-    log.warn("CloudWatch Streaming Listener, onReceiverError:" + appName)
-
-    writeRecieverStatsToCloudWatch(receiverError)
+  override def onQueryProgress(event: QueryProgressEvent): Unit = {
+    pushMetric(dimensionsMap, "progress", 1.0, StandardUnit.Count)
   }
 
-  /**
-    * This method will just send one, whenever there is a recieverError
-    *
-    * @param receiverError Class having information on the completed batch
-    */
-  def writeRecieverStatsToCloudWatch(receiverError: StreamingListenerReceiverError): Unit = {
-
-    sendHeartBeat(dimensionsMap, "receiverError")
-
+  override def onQueryTerminated(event: QueryTerminatedEvent): Unit = {
+    pushMetric(dimensionsMap, "terminated", 1.0, StandardUnit.Count)
   }
+
+//
+//  def writeRecieverStatsToCloudWatch(receiverError: StreamingListenerReceiverError): Unit = {
+//
+//    sendHeartBeat(dimensionsMap, "receiverError")
+//
+//  }
 
   def sendHeartBeat(dimensionItems: Map[String, String], metricName: String): Unit = {
     pushMetric(dimensionItems, "heartBeat", 1.0, StandardUnit.Count)
