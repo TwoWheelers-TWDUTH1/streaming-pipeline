@@ -42,6 +42,7 @@ object StationApp {
       .option("kafka.bootstrap.servers", kafkaBrokers)
       .option("subscribe", stationInformationTopic)
       .option("startingOffsets", "latest")
+      .option("security.protocol", "SSL")
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .transform(stationInformationJson2DF(_, spark))
@@ -54,6 +55,7 @@ object StationApp {
       .option("kafka.bootstrap.servers", kafkaBrokers)
       .option("subscribe", stationStatusTopic)
       .option("startingOffsets", "latest")
+      .option("security.protocol", "SSL")
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .transform(stationStatusJson2DF(_, spark))
@@ -88,6 +90,7 @@ object StationApp {
       .option("checkpointLocation", checkpointLocation)
       .option("topic", stationDataNYC)
       .option("kafka.bootstrap.servers", kafkaBrokers)
+      .option("security.protocol", "SSL")
       .start()
       .awaitTermination()
   }
