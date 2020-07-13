@@ -44,12 +44,16 @@ Host bastion.${TRAINING_COHORT}.training
 echo "====SSH Config Updated===="
 
 echo "====Insert app config in zookeeper===="
-scp ./zookeeper/seed.sh kafka.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
-ssh kafka.${TRAINING_COHORT}.training <<EOF
+scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
+ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
+
+ZK_BROKER_LIST=$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
+
 export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
-export kafka_server="kafka.${TRAINING_COHORT}.training:9092"
-export zk_command="zookeeper-shell localhost:2181"
+//export kafka_server="kafka.${TRAINING_COHORT}.training:9092"
+export kafka_server="$(aws kafka get-bootstrap-brokers --cluster-arn "$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)" | jq .BootstrapBrokerStringTls -r)"
+export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell ${ZK_BROKER_LIST}"
 sh /tmp/zookeeper-seed.sh
 EOF
 
