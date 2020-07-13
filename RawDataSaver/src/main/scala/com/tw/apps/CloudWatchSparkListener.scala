@@ -10,7 +10,7 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 
-import scala.collection.mutable.{HashMap, Map}
+import scala.collection.mutable
 import scala.io.{BufferedSource, Source}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -19,7 +19,7 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 class CloudWatchSparkListener(appName: String = "ApplicationName") extends StreamingQueryListener {
 
   val log: Logger = Logger.getLogger(getClass.getName)
-  val dimensionsMap = new HashMap[String, String]()
+  val dimensionsMap: mutable.Map[String, String] = mutable.HashMap[String, String]()
   val cw: AmazonCloudWatch = AmazonCloudWatchClientBuilder.defaultClient()
   val jobFlowInfoFile = "/mnt/var/lib/info/job-flow.json"
   val jobFlowId: String = parseJsonWithJackson(Source.fromFile(jobFlowInfoFile)).get("jobFlowId").mkString
@@ -39,39 +39,39 @@ class CloudWatchSparkListener(appName: String = "ApplicationName") extends Strea
     pushMetric(dimensionsMap, "is_app_running", 0, StandardUnit.Count)
   }
 
-  def parseJsonWithJackson(json: BufferedSource): Map[String, Object] = {
+  def parseJsonWithJackson(json: BufferedSource): mutable.Map[String, Object] = {
     val attrMapper = new ObjectMapper() with ScalaObjectMapper
     attrMapper.registerModule(DefaultScalaModule)
-    attrMapper.readValue[Map[String, Object]](json.reader())
+    attrMapper.readValue[mutable.Map[String, Object]](json.reader())
   }
 
-  def pushMetric(dimensionItems: Map[String, String], metricName: String, value: Double, unit: StandardUnit) {
+  def pushMetric(dimensionItems: mutable.Map[String, String], metricName: String, value: Double, unit: StandardUnit) {
     val dimensions = new util.ArrayList[Dimension]()
 
     for ((k, v) <- dimensionItems) {
-      var dimension = new Dimension().withName(k).withValue(v)
+      val dimension = new Dimension().withName(k).withValue(v)
       dimensions.add(dimension)
     }
 
-    var dimensionAppName = new Dimension()
+    val dimensionAppName = new Dimension()
       .withName("ApplicationName")
       .withValue(appName)
 
     dimensions.add(dimensionAppName)
 
-    var dimentionsJobFlowId = new Dimension()
+    val dimentionsJobFlowId = new Dimension()
       .withName("JobFlowId")
       .withValue(jobFlowId)
 
     dimensions.add(dimentionsJobFlowId)
 
-    var datum = new MetricDatum()
+    val datum = new MetricDatum()
       .withMetricName(metricName)
       .withUnit(unit)
       .withValue(value)
       .withDimensions(dimensions)
 
-    var request = new PutMetricDataRequest()
+    val request = new PutMetricDataRequest()
       .withNamespace("AWS/ElasticMapReduce")
       .withMetricData(datum)
 

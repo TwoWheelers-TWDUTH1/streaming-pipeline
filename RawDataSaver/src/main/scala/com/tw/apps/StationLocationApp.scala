@@ -32,13 +32,11 @@ object StationLocationApp {
     val dataLocation = new String(
       zkClient.getData.watched.forPath(s"$zookeeperFolder/dataLocation"))
 
-    val appName = "RawDataSaver"
 
     val spark = SparkSession.builder
-      .appName(appName)
       .getOrCreate()
 
-    val runtimeAppName = spark.conf.get("spark.app.name")
+    val runtimeAppName = spark.sparkContext.appName
 
     val cwListener = new CloudWatchSparkListener(runtimeAppName)
 
