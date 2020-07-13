@@ -44,16 +44,24 @@ Host bastion.${TRAINING_COHORT}.training
 echo "====SSH Config Updated===="
 
 echo "====Insert app config in zookeeper===="
+scp ./zookeeper/seed.sh kafka.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
+ssh kafka.${TRAINING_COHORT}.training <<EOF
+set -e
+export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
+export kafka_server="kafka.${TRAINING_COHORT}.training:9092"
+export zk_command="zookeeper-shell localhost:2181"
+sh /tmp/zookeeper-seed.sh
+EOF
+
+echo "====Insert app config in MSK zookeeper===="
 scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
 ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
-
-zk_broker_list=$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
-emr_arn=$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
-
+zk_broker_list=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
+emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
 export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
-export kafka_server="$(aws kafka get-bootstrap-brokers --cluster-arn "$(emr_arn)" | jq .BootstrapBrokerStringTls -r)"
-export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell ${zk_broker_list}"
+export kafka_server="\$(aws kafka get-bootstrap-brokers --cluster-arn "\$(emr_arn)" | jq .BootstrapBrokerStringTls -r)"
+export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell \${zk_broker_list}"
 sh /tmp/zookeeper-seed.sh
 EOF
 
