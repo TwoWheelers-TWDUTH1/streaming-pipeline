@@ -23,13 +23,16 @@ public class KafkaConfiguration {
     @Value("${producer.topic}")
     private String writeTopic;
 
+    @Value("kafka.security.protocol")
+    private String securityProtocol;
+
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+        props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
         return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props));
     }
 

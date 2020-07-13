@@ -85,11 +85,16 @@ station_san_francisco="station-san-francisco"
 
 echo "====Kill running producers===="
 
-kill_process \${station_information}
+kill_process \${station_information} 
 kill_process \${station_status}
 kill_process \${station_san_francisco}
 
-echo "====Runing Producers Killed===="
+efcho "====Runing Producers Killed===="
+
+echo "====Deploy Producers => MSK===="
+nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_information} --kafka.brokers=${kafka_server} --kafka.security.protocol=SSL 1>/tmp/\${station_information}-msk.log 2>/tmp/\${station_information}-msk.error.log &
+nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_san_francisco} --kafka.brokers=${kafka_server} --kafka.security.protocol=SSL 1>/tmp/\${station_san_francisco}-msk.log 2>/tmp/\${station_san_francisco}-msk.error.log &
+nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_status} --kafka.brokers=${kafka_server} --kafka.security.protocol=SSL 1>/tmp/\${station_status}-msk.log 2>/tmp/\${station_status}-msk.error.log &
 
 echo "====Deploy Producers===="
 nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_information} --kafka.brokers=kafka.${TRAINING_COHORT}.training:9092 1>/tmp/\${station_information}.log 2>/tmp/\${station_information}.error.log &
