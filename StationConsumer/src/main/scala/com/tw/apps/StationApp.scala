@@ -4,6 +4,7 @@ import StationDataTransformation._
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.streaming.{Duration, StreamingContext}
 
 object StationApp {
 
@@ -28,9 +29,14 @@ object StationApp {
     val outputLocation = new String(
       zkClient.getData.watched.forPath("/tw/output/dataLocation"))
 
+    val appName = "StationConsumer"
     val spark = SparkSession.builder
-      .appName("StationConsumer")
+      .appName(appName)
       .getOrCreate()
+
+    val batchInterval = Duration(1000) //millis
+    val cwListener = new CloudWatchSparkListener(appName)
+    new StreamingContext(spark.sparkContext, batchInterval).addStreamingListener(cwListener)
 
     import spark.implicits._
 
