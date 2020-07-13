@@ -4,6 +4,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.spark.sql.functions._
+import org.apache.spark.streaming.{Duration, StreamingContext}
 
 object StationLocationApp {
   def main(args: Array[String]): Unit = {
@@ -31,9 +32,15 @@ object StationLocationApp {
     val dataLocation = new String(
       zkClient.getData.watched.forPath(s"$zookeeperFolder/dataLocation"))
 
+    val appName = "RawDataSaver"
+
     val spark = SparkSession.builder
-      .appName("RawDataSaver")
+      .appName(appName)
       .getOrCreate()
+
+    val batchInterval = Duration(1000) //millis
+    val cwListener = new CloudWatchSparkListener(appName)
+    new StreamingContext(spark.sparkContext, batchInterval).addStreamingListener(cwListener)
 
     val savedStream = spark.readStream
       .format("kafka")
