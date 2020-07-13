@@ -38,7 +38,9 @@ object StationLocationApp {
       .appName(appName)
       .getOrCreate()
 
-    val cwListener = new CloudWatchSparkListener(appName)
+    val runtimeAppName = spark.conf.get("spark.app.name")
+
+    val cwListener = new CloudWatchSparkListener(runtimeAppName)
 
     spark.streams.addListener(cwListener)
 

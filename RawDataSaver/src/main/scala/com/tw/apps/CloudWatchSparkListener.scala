@@ -34,14 +34,17 @@ class CloudWatchSparkListener(appName: String = "ApplicationName") extends Strea
 //  }
 
   override def onQueryStarted(event: QueryStartedEvent): Unit = {
+    log.info("Cloudwatch Streaming Listener, onQueryStarted: " + appName)
     pushMetric(dimensionsMap, "started", 1.0, StandardUnit.Count)
   }
 
   override def onQueryProgress(event: QueryProgressEvent): Unit = {
+    log.info("Cloudwatch Streaming Listener, onQueryProgress: " + appName)
     pushMetric(dimensionsMap, "progress", 1.0, StandardUnit.Count)
   }
 
   override def onQueryTerminated(event: QueryTerminatedEvent): Unit = {
+    log.info("Cloudwatch Streaming Listener, onQueryTerminated: " + appName)
     pushMetric(dimensionsMap, "terminated", 1.0, StandardUnit.Count)
   }
 
