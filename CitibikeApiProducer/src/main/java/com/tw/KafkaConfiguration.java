@@ -1,5 +1,6 @@
 package com.tw;
 
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ public class KafkaConfiguration {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props));
     }
 
