@@ -53,4 +53,8 @@ $zk_command create /tw/output/checkpointLocation /tmp/tw/stationMart/checkpoints
 $zk_command create /tw/output/dataLocation /tmp/tw/stationMart/data
 
 
+kafka-topics.sh --create --zookeeper z-1.data-eng-twdu-th.2r5myc.c2.kafka.ap-southeast-1.amazonaws.com:2181 --replication-factor 3 --partitions 1 --topic test
+kafka-topics.sh --create --zookeeper z-2.data-eng-twdu-th.2r5myc.c2.kafka.ap-southeast-1.amazonaws.com:2181 --replication-factor 3 --partitions 1 --topic test
+kafka-topics.sh --create --zookeeper z-3.data-eng-twdu-th.2r5myc.c2.kafka.ap-southeast-1.amazonaws.com:2181 --replication-factor 3 --partitions 1 --topic test
+
 tail -f /dev/null
