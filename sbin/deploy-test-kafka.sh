@@ -35,6 +35,8 @@ Host bastion.${TRAINING_COHORT}.training
     DynamicForward 6789
 " >> ~/.ssh/config
 
+ssh-add ~/.ssh/id_rsa_*
+
 echo "====SSH Config Updated===="
 
 echo ">>>>> TEST hello on bastion ${TRAINING_COHORT} ${BASTION_PUBLIC_IP}"
