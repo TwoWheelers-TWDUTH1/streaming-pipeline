@@ -16,6 +16,7 @@ import com.tw.utils.CloudWatchUtil;
 @Component
 public class ProducerScheduler {
 
+    @Autowired
     private CloudWatchUtil cloudwatchUtil = new CloudWatchUtil(AmazonCloudWatchClientBuilder.defaultClient());
 
     @Autowired
