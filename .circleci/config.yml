@@ -100,15 +100,18 @@ workflows:
         jobs:
             - build:
                 requires:
-                    - approve_prod_deploy
                 filters:
                     branches:
                         only:
                             - master
                             - start
-            - deploy_to_test_environment
+            - deploy_to_test_environment:
+                requires:
+                    - build
             - approve_prod_deploy:
+                requires:
+                    - deploy_to_test_environment
                   type: approval
             - deploy:
                 requires:
-                    - build
+                    - approve_prod_deploy
