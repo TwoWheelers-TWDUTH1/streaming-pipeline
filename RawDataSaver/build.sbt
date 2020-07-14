@@ -14,9 +14,11 @@ lazy val root = (project in file(".")).
     name := "tw-raw-data-saver",
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-      "org.apache.kafka" %% "kafka" % "0.10.0.1" % "test",
+      "org.scalatest" %% "scalatest" % "3.1.0" % "test",
+      "org.scalamock" %% "scalamock" % "4.4.0" % "test",
+      "org.apache.kafka" %% "kafka" % "1.1.1" % "test",
       "org.apache.curator" % "curator-test" % "2.10.0" % "test",
+
       "org.apache.spark" %% "spark-core" % sparkVersion,
       "org.apache.spark" %% "spark-sql" % sparkVersion,
       "org.apache.spark" %% "spark-sql-kafka-0-10" % sparkVersion,

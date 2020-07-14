@@ -1,5 +1,8 @@
 package com.tw.apps
 
+import java.io.FileInputStream
+
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import org.apache.spark.sql.SparkSession
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -38,7 +41,7 @@ object StationLocationApp {
 
     val runtimeAppName = spark.sparkContext.appName
 
-    val cwListener = new CloudWatchSparkListener(runtimeAppName)
+    val cwListener = new CloudWatchSparkListener(runtimeAppName, new FileInputStream("/mnt/var/lib/info/job-flow.json"), AmazonCloudWatchClientBuilder.defaultClient())
 
     spark.streams.addListener(cwListener)
 
