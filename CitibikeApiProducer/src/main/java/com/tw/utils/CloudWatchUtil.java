@@ -57,7 +57,7 @@ public class CloudWatchUtil {
                 .withDimensions(dimensionSet);
 
         PutMetricDataRequest request = new PutMetricDataRequest()
-                .withNamespace("APP/Monitoring")
+                .withNamespace("ingester-monitoring")
                 .withMetricData(datum);
 
         PutMetricDataResult response = cw.putMetricData(request);

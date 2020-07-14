@@ -33,7 +33,7 @@ public class ProducerScheduler {
         apiProducer.sendMessage(response);
     }
 
-    @Scheduled(fixedRate = 1000 * 60)
+    @Scheduled(cron="${producer.cron}")
     public void scheduledCloudwatch() {
         cloudwatchUtil.sendHeartBeat();
     }

@@ -85,7 +85,7 @@ public class CloudWatchUtilTest {
                 .withDimensions(expectedDimensionSet);
 
         PutMetricDataRequest expectedRequest = new PutMetricDataRequest()
-                .withNamespace("APP/Monitoring")
+                .withNamespace("ingester-monitoring")
                 .withMetricData(datum);
 
         verify(cw).putMetricData(expectedRequest);
@@ -115,7 +115,7 @@ public class CloudWatchUtilTest {
                 .withDimensions(expectedDimensionSet);
 
         PutMetricDataRequest expectedRequest = new PutMetricDataRequest()
-                .withNamespace("APP/Monitoring")
+                .withNamespace("ingester-monitoring")
                 .withMetricData(datum);
 
         verify(cw).putMetricData(expectedRequest);
