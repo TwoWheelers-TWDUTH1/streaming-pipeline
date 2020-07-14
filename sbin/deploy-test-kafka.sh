@@ -39,17 +39,12 @@ ssh-add ~/.ssh/id_rsa_*
 
 echo "====SSH Config Updated===="
 
-echo ">>>>> TEST hello on bastion ${TRAINING_COHORT} ${BASTION_PUBLIC_IP}"
-ssh -o StrictHostKeyChecking=no bastion.${TRAINING_COHORT}.training "echo hello on bastion"
-
-echo ">>>>> TEST hello on emr"
-ssh -o StrictHostKeyChecking=no emr-master.${TRAINING_COHORT}.training "echo hello on emr-master"
-
 echo "====Insert app config in MSK zookeeper===="
 scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
 
 ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
+sudo pip install --upgrade awscli
 zk_broker_list=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
 emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
 export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
