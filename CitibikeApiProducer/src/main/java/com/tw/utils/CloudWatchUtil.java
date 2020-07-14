@@ -1,7 +1,6 @@
 package com.tw.utils;
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.MetricDatum;
 import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
@@ -21,17 +20,18 @@ public class CloudWatchUtil {
     private String appName;
 
     private static Logger logger = LoggerFactory.getLogger(CloudWatchUtil.class);
-    final AmazonCloudWatch cw = AmazonCloudWatchClientBuilder.defaultClient();
 
-    public CloudWatchUtil(String appName) {
-        this.appName = appName;
+    private AmazonCloudWatch cw;
+
+    public CloudWatchUtil(AmazonCloudWatch cw) {
+        this.cw = cw;
     }
 
-    public void sendHeartBeat() {
-        this.putMetric("is_app_running", 1.0, StandardUnit.None);
+    public PutMetricDataResult sendHeartBeat() {
+        return this.putMetric("is_app_running", 1.0, StandardUnit.None);
     }
 
-    private void putMetric(String metricName, Double value, StandardUnit unit) {
+    public PutMetricDataResult putMetric(String metricName, Double value, StandardUnit unit) {
 
         Dimension dimensionAppName = new Dimension()
                 .withName("ApplicationName")
@@ -61,6 +61,8 @@ public class CloudWatchUtil {
             logger.warn("Failed pushing CloudWatch Metric with RequestId: " + response.getSdkResponseMetadata().getRequestId());
             logger.debug("Response Status code: " + response.getSdkHttpMetadata().getHttpStatusCode());
         }
+
+        return response;
 
     }
 }

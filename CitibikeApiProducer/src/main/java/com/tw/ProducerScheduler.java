@@ -9,12 +9,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
+
 import com.tw.utils.CloudWatchUtil;
 
 @Component
 public class ProducerScheduler {
 
-    private CloudWatchUtil cloudwatchUtil = new CloudWatchUtil();
+    private CloudWatchUtil cloudwatchUtil = new CloudWatchUtil(AmazonCloudWatchClientBuilder.defaultClient());
 
     @Autowired
     private ApiProducer apiProducer;
