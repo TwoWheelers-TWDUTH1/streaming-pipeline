@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-TEST_EMR="emr-master.${TRAINING_COHORT}-test.training"
-
 if [ $# -eq 0 ]; then
     usage
     exit 1
@@ -9,6 +7,8 @@ fi
 
 TEST_BASTION_PUBLIC_IP=$1
 TRAINING_COHORT=$2
+
+TEST_EMR="emr-master.${TRAINING_COHORT}-test.training"
 
 echo "====Updating SSH Config===="
 
