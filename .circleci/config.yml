@@ -56,7 +56,7 @@ jobs:
                   fingerprints:
                       - "12:aa:8b:5d:d6:30:c5:de:13:08:5b:ae:55:f7:e1:4b"
             - run:
-                  command: ./sbin/deploy.sh $TEST_BASTION_PUBLIC_IP $TRAINING_COHORT_TEST
+                  command: ./sbin/deploy.sh $BASTION_PUBLIC_IP_TEST $TRAINING_COHORT_TEST
 
     deploy:
         <<: *defaults
