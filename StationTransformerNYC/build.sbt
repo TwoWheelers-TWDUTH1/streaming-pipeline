@@ -20,13 +20,15 @@ lazy val root = (project in file(".")).
     dependencyOverrides += "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.9.10",
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+      "org.scalatest" %% "scalatest" % "3.1.0" % "test",
+      "org.scalamock" %% "scalamock" % "4.4.0" % "test",
       "org.apache.kafka" %% "kafka" % "1.1.1" % "test",
       "org.apache.curator" % "curator-test" % "2.10.0" % "test",
       "org.apache.spark" %% "spark-core" % sparkVersion,
       "org.apache.spark" %% "spark-sql" % sparkVersion,
       "org.apache.spark" %% "spark-sql-kafka-0-10" % sparkVersion % "provided" excludeAll(excludeJpountz),
       "org.apache.spark" %% "spark-streaming" % sparkVersion,
-      "org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion
+      "org.apache.spark" %% "spark-streaming-kafka-0-10" % sparkVersion,
+"com.amazonaws" % "aws-java-sdk" % "1.11.818"
     )
   )

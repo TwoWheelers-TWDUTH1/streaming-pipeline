@@ -3,15 +3,18 @@ package com.tw.apps
 import StationDataTransformation.nycStationStatusJson2DF
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.ScalaReflection
-import org.scalatest._
+import org.scalatest.GivenWhenThen
+import org.scalatest.featurespec.AnyFeatureSpec
+import org.scalatest.matchers.should.Matchers
 
-class StationDataTransformationTest extends FeatureSpec with Matchers with GivenWhenThen {
 
-  feature("Apply station status transformations to data frame") {
+class StationDataTransformationTest extends AnyFeatureSpec with Matchers with GivenWhenThen {
+
+  Feature("Apply station status transformations to data frame") {
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
     import spark.implicits._
 
-    scenario("Transform nyc station data frame") {
+    Scenario("Transform nyc station data frame") {
 
       val testStationData =
         """{

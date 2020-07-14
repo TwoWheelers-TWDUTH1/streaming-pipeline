@@ -1,6 +1,7 @@
 package com.tw.apps
 
 import StationDataTransformation._
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.spark.sql.SparkSession
@@ -29,14 +30,14 @@ object StationApp {
     val outputLocation = new String(
       zkClient.getData.watched.forPath("/tw/output/dataLocation"))
 
-    val appName = "StationConsumer"
+
     val spark = SparkSession.builder
-      .appName(appName)
       .getOrCreate()
 
-    val batchInterval = Duration(1000) //millis
-    val cwListener = new CloudWatchSparkListener(appName)
-    new StreamingContext(spark.sparkContext, batchInterval).addStreamingListener(cwListener)
+    val runtimeAppName = spark.sparkContext.appName
+    val filePath = "/mnt/var/lib/info/job-flow.json"
+    val cwListener = new CloudWatchSparkListener(runtimeAppName, filePath, AmazonCloudWatchClientBuilder.defaultClient())
+    spark.streams.addListener(cwListener)
 
     import spark.implicits._
 

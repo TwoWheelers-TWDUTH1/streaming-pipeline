@@ -2,15 +2,17 @@ package com.tw.apps
 
 import com.tw.apps.StationStatusTransformation._
 import org.apache.spark.sql.SparkSession
-import org.scalatest._
+import org.scalatest.GivenWhenThen
+import org.scalatest.featurespec.AnyFeatureSpec
+import org.scalatest.matchers.should.Matchers
 
-class StationStatusTransformationTest extends FeatureSpec with Matchers with GivenWhenThen {
+class StationStatusTransformationTest extends AnyFeatureSpec with Matchers with GivenWhenThen {
 
-  feature("Apply station status transformations to data frame") {
+  Feature("Apply station status transformations to data frame") {
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
     import spark.implicits._
 
-    scenario("Transform station_status data frame and extract useful fields of NYC") {
+    Scenario("Transform station_status data frame and extract useful fields of NYC") {
 
       val testStationStatusData =
         """{
@@ -93,7 +95,7 @@ class StationStatusTransformationTest extends FeatureSpec with Matchers with Giv
       row2.get(5) should be("73")
     }
 
-    scenario("Transform status information data frame and extract useful fields of SF") {
+    Scenario("Transform status information data frame and extract useful fields of SF") {
       val sfInformationData =
         """{
         "metadata": {
@@ -189,8 +191,6 @@ class StationStatusTransformationTest extends FeatureSpec with Matchers with Giv
       row2.get(2) shouldBe true
       row2.get(3) shouldBe true
       row2.get(4) should be(1535551137)
-
     }
-
   }
 }

@@ -1,15 +1,17 @@
 package com.tw.apps
 
-import StationInformationTransformation._
+import com.tw.apps.StationInformationTransformation._
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
+import org.scalatest.GivenWhenThen
+import org.scalatest.featurespec.AnyFeatureSpec
+import org.scalatest.matchers.should.Matchers
 
-class StationInformationTransformationTest extends FeatureSpec with Matchers with GivenWhenThen {
-  feature("Apply station information transformations to data frame") {
+class StationInformationTransformationTest extends AnyFeatureSpec with Matchers with GivenWhenThen {
+  Feature("Apply station information transformations to data frame") {
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
     import spark.implicits._
 
-    scenario("Transform station_information data frame and extract useful fields") {
+    Scenario("Transform station_information data frame and extract useful fields") {
 
       val testStationInformationData =
         """{

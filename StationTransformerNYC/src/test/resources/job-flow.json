@@ -1,0 +1,27 @@
+{
+  "jobFlowId": "j-XN2TG35DXXN",
+  "instanceCount": 4,
+  "masterInstanceId": "i-05b8457a2cd1690f6",
+  "masterPrivateDnsName": "10.0.3.203",
+  "masterInstanceType": "m4.xlarge",
+  "slaveInstanceType": "m4.large",
+  "hadoopVersion": "2.8.3",
+  "instanceGroups": [
+    {
+      "instanceGroupId": "ig-2QTMXB55OBZN7",
+      "instanceGroupName": "",
+      "instanceRole": "Master",
+      "marketType": "OnDemand",
+      "instanceType": "m4.xlarge",
+      "requestedInstanceCount": 1
+    },
+    {
+      "instanceGroupId": "ig-3M53YKZ6VB7IM",
+      "instanceGroupName": "",
+      "instanceRole": "Core",
+      "marketType": "OnDemand",
+      "instanceType": "m4.large",
+      "requestedInstanceCount": 3
+    }
+  ]
+}
