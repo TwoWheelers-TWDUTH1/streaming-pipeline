@@ -5,10 +5,9 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-TEST_BASTION_PUBLIC_IP=$1
+BASTION_PUBLIC_IP=$1
 TRAINING_COHORT=$2
 
-TEST_EMR="emr-master.${TRAINING_COHORT}.training"
 
 echo "====Updating SSH Config===="
 
@@ -20,32 +19,38 @@ echo "
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
 
-Host ${TEST_EMR}
+Host emr-master.${TRAINING_COHORT}.training
     User hadoop
 
 Host *.${TRAINING_COHORT}.training !bastion.${TRAINING_COHORT}.training
 	ForwardAgent yes
-	ProxyCommand ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@${TEST_BASTION_PUBLIC_IP} -W %h:%p 2>/dev/null
+	ProxyCommand ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@${BASTION_PUBLIC_IP} -W %h:%p 2>/dev/null
 	User ec2-user
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
 
 Host bastion.${TRAINING_COHORT}.training
     User ec2-user
-    HostName ${TEST_BASTION_PUBLIC_IP}
+    HostName ${BASTION_PUBLIC_IP}
     DynamicForward 6789
 " >> ~/.ssh/config
 
 echo "====SSH Config Updated===="
 
-echo "====Insert app config in MSK zookeeper===="
-scp ./zookeeper/seed.sh ${TEST_EMR}:/tmp/zookeeper-seed.sh
+echo ">>>>> TEST hello on bastion"
+ssh bastion.${TRAINING_COHORT}.training "echo hello on bastion"
 
-ssh ${TEST_EMR} <<EOF
+echo ">>>>> TEST hello on emr"
+ssh emr-master.${TRAINING_COHORT}.training "echo hello on emr-master"
+
+echo "====Insert app config in MSK zookeeper===="
+scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
+
+ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
 zk_broker_list=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
 emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
-export hdfs_server="${TEST_EMR}:8020"
+export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
 export kafka_server="\$(aws kafka get-bootstrap-brokers --cluster-arn "\$(emr_arn)" | jq .BootstrapBrokerStringTls -r)"
 export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell \${zk_broker_list}"
 sh /tmp/zookeeper-seed.sh
@@ -88,11 +93,11 @@ nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active
 EOF
 
 echo "====Configure HDFS paths===="
-scp ./hdfs/seed.sh ${TEST_EMR}:/tmp/hdfs-seed.sh
+scp ./hdfs/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/hdfs-seed.sh
 
-ssh ${TEST_EMR} <<EOF
+ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
-export hdfs_server="${TEST_EMR}:8020"
+export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
 export hadoop_path="hadoop"
 sh /tmp/hdfs-seed.sh
 EOF
