@@ -29,7 +29,7 @@ public class CloudWatchUtil {
     }
 
     public String getInstanceIdWrapper(){
-        return EC2MetadataUtils.getInstanceId(); //Instead of calling the static method directly, we are wrapping it in a non static method
+        return EC2MetadataUtils.getInstanceId();
     }
 
     public PutMetricDataResult sendHeartBeat() {
@@ -44,7 +44,7 @@ public class CloudWatchUtil {
 
         Dimension dimensionInstanceId = new Dimension()
                 .withName("InstanceId")
-                .withValue(this.getInstanceIdWrapper());
+                .withValue("test-instance-id");
 
         Set<Dimension> dimensionSet = new HashSet<>();
         dimensionSet.add(dimensionAppName);
