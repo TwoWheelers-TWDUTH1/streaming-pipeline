@@ -48,7 +48,7 @@ zk_broker_list=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConn
 emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
 export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
 export kafka_server="\$(aws kafka get-bootstrap-brokers --cluster-arn "\${emr_arn}" | jq .BootstrapBrokerStringTls -r)"
-export zk_command="/home/ec2-user/kafka_2.11-1.1.1/bin/zookeeper-shell \${zk_broker_list}"
+export zk_command="zookeeper-client -server \${zk_broker_list}"
 sh /tmp/zookeeper-seed.sh
 EOF
 
