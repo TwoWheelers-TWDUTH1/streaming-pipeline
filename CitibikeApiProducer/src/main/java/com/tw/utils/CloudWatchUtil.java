@@ -18,8 +18,8 @@ import java.util.HashSet;
 
 public class CloudWatchUtil {
 
-    @Value("${profiles.active}")
-    private String activeProfile;
+    @Value("${application.name}")
+    private String applicationName;
 
     private static Logger logger = LoggerFactory.getLogger(CloudWatchUtil.class);
 
@@ -39,11 +39,11 @@ public class CloudWatchUtil {
 
     public PutMetricDataResult putMetric(String metricName, Double value, StandardUnit unit) {
 
-        String appName = Optional.ofNullable(activeProfile).orElse("IngesterApp");
+        String appNameWithDefault = Optional.ofNullable(applicationName).orElse("IngesterApp");
 
         Dimension dimensionAppName = new Dimension()
                 .withName("ApplicationName")
-                .withValue(appName);
+                .withValue(appNameWithDefault);
 
         Dimension dimensionInstanceId = new Dimension()
                 .withName("InstanceId")
