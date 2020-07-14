@@ -66,10 +66,9 @@ jobs:
                   at: /home/circleci/project
             - add_ssh_keys:
                   fingerprints:
-                      - "b4:38:42:0f:3e:2b:f8:92:f9:ec:a9:14:3a:f0:d0:4b"
+                      - "12:aa:8b:5d:d6:30:c5:de:13:08:5b:ae:55:f7:e1:4b"
             - run:
                   command: ./sbin/deploy-test-kafka.sh $TEST_BASTION_PUBLIC_IP $TRAINING_COHORT_TEST
-
 workflows:
     version: 2
 
