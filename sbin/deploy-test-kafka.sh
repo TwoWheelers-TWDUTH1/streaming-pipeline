@@ -44,7 +44,6 @@ scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-se
 
 ssh emr-master.${TRAINING_COHORT}.training <<EOF
 set -e
-//sudo pip install --upgrade awscli
 zk_broker_list=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
 emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
 export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
