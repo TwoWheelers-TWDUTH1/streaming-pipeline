@@ -25,7 +25,7 @@ public class CloudWatchUtil {
 
     private static Logger logger = LoggerFactory.getLogger(CloudWatchUtil.class);
 
-    private final AmazonCloudWatch cw;
+    private AmazonCloudWatch cw;
 
     public CloudWatchUtil(AmazonCloudWatch cw) {
         this.cw = cw;
