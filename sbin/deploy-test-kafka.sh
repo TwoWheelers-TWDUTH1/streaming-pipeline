@@ -40,10 +40,10 @@ ssh-add ~/.ssh/id_rsa_*
 echo "====SSH Config Updated===="
 
 echo ">>>>> TEST hello on bastion ${TRAINING_COHORT} ${BASTION_PUBLIC_IP}"
-ssh bastion.${TRAINING_COHORT}.training "echo hello on bastion"
+ssh -o StrictHostKeyChecking=no bastion.${TRAINING_COHORT}.training "echo hello on bastion"
 
 echo ">>>>> TEST hello on emr"
-ssh emr-master.${TRAINING_COHORT}.training "echo hello on emr-master"
+ssh -o StrictHostKeyChecking=no emr-master.${TRAINING_COHORT}.training "echo hello on emr-master"
 
 echo "====Insert app config in MSK zookeeper===="
 scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh

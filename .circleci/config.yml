@@ -75,10 +75,10 @@ jobs:
         steps:
             - checkout
             - attach_workspace:
-                  at: /home/circleci/project
+                at: /home/circleci/project
             - add_ssh_keys:
-                  fingerprints:
-                      - "12:aa:8b:5d:d6:30:c5:de:13:08:5b:ae:55:f7:e1:4b"
+                fingerprints:
+                  - "12:aa:8b:5d:d6:30:c5:de:13:08:5b:ae:55:f7:e1:4b"
             - run:
                   command: ssh-add -l
             - run:
