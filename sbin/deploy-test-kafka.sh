@@ -37,7 +37,7 @@ Host bastion.${TRAINING_COHORT}.training
 
 echo "====SSH Config Updated===="
 
-echo ">>>>> TEST hello on bastion"
+echo ">>>>> TEST hello on bastion ${TRAINING_COHORT} ${BASTION_PUBLIC_IP}"
 ssh bastion.${TRAINING_COHORT}.training "echo hello on bastion"
 
 echo ">>>>> TEST hello on emr"
