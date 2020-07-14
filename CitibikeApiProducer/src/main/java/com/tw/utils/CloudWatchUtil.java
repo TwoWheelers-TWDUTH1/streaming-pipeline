@@ -11,11 +11,13 @@ import com.amazonaws.util.EC2MetadataUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.HashSet;
 
+@Component
 public class CloudWatchUtil {
 
     @Value("${application.name}")
@@ -23,7 +25,7 @@ public class CloudWatchUtil {
 
     private static Logger logger = LoggerFactory.getLogger(CloudWatchUtil.class);
 
-    private AmazonCloudWatch cw;
+    private final AmazonCloudWatch cw;
 
     public CloudWatchUtil(AmazonCloudWatch cw) {
         this.cw = cw;
