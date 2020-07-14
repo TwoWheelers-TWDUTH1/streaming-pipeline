@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT-0
 package com.tw.apps
 
-import java.io.InputStream
-
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
 import org.apache.log4j.Logger
@@ -14,9 +12,9 @@ import scala.collection.JavaConversions
 import scala.io.Source
 import scala.util.parsing.json.JSON
 
-class CloudWatchSparkListener(appName: String, jobFlowFileStream: InputStream, cloudWatchClient: AmazonCloudWatch) extends StreamingQueryListener {
+class CloudWatchSparkListener(appName: String, jobFlowFilePath: String, cloudWatchClient: AmazonCloudWatch) extends StreamingQueryListener {
 
-  private val jobFlowId = parseJobFlowId
+  val jobFlowId: String = getJobFlowId
   val log: Logger = Logger.getLogger(getClass.getName)
 
   override def onQueryStarted(event: QueryStartedEvent): Unit = {
@@ -34,8 +32,9 @@ class CloudWatchSparkListener(appName: String, jobFlowFileStream: InputStream, c
     pushMetric("is_app_running", 0, StandardUnit.Count)
   }
 
-  def parseJobFlowId: String = {
-    val fileContent = JSON.parseFull(Source.fromInputStream(jobFlowFileStream).mkString)
+  def getJobFlowId: String = {
+    val path = Source.fromFile(jobFlowFilePath)
+    val fileContent = JSON.parseFull(path.mkString)
       .getOrElse(Map[String, Any]().empty).asInstanceOf[Map[String, Any]]
 
     fileContent

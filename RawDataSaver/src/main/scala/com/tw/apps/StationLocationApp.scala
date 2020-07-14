@@ -41,7 +41,8 @@ object StationLocationApp {
 
     val runtimeAppName = spark.sparkContext.appName
 
-    val cwListener = new CloudWatchSparkListener(runtimeAppName, new FileInputStream("/mnt/var/lib/info/job-flow.json"), AmazonCloudWatchClientBuilder.defaultClient())
+    val filePath = "/mnt/var/lib/info/job-flow.json"
+    val cwListener = new CloudWatchSparkListener(runtimeAppName, filePath, AmazonCloudWatchClientBuilder.defaultClient())
 
     spark.streams.addListener(cwListener)
 
