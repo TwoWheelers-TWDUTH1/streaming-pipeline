@@ -12,13 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.HashSet;
 
 public class CloudWatchUtil {
 
-    @Value("${spring.profiles.active}")
-    private String appName;
+    @Value("${profiles.active}")
+    private String activeProfile;
 
     private static Logger logger = LoggerFactory.getLogger(CloudWatchUtil.class);
 
@@ -38,15 +39,17 @@ public class CloudWatchUtil {
 
     public PutMetricDataResult putMetric(String metricName, Double value, StandardUnit unit) {
 
+        String appName = Optional.ofNullable(activeProfile).orElse("IngesterApp");
+
         Dimension dimensionAppName = new Dimension()
                 .withName("ApplicationName")
-                .withValue(this.appName);
+                .withValue(appName);
 
         Dimension dimensionInstanceId = new Dimension()
                 .withName("InstanceId")
-                .withValue("test-instance-id");
+                .withValue(getInstanceIdWrapper());
 
-        Set<Dimension> dimensionSet = new HashSet<>();
+        Set<Dimension> dimensionSet = new HashSet();
         dimensionSet.add(dimensionAppName);
         dimensionSet.add(dimensionInstanceId);
 
@@ -54,6 +57,7 @@ public class CloudWatchUtil {
                 .withMetricName(metricName)
                 .withUnit(unit)
                 .withValue(value)
+                .withDimensions()
                 .withDimensions(dimensionSet);
 
         PutMetricDataRequest request = new PutMetricDataRequest()

@@ -34,14 +34,14 @@ public class CloudWatchUtilTest {
     private AmazonCloudWatch cw;
 
 
-    @Value("${spring.profiles.active}")
+    @Value("${profiles.active}")
     private String testAppName;
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException {
         MockitoAnnotations.initMocks(this);
 
-        Field appNameField = CloudWatchUtil.class.getDeclaredField("appName");
+        Field appNameField = CloudWatchUtil.class.getDeclaredField("activeProfile");
         appNameField.setAccessible(true);
         appNameField.set(cloudWatchUtil, testAppName);
 
