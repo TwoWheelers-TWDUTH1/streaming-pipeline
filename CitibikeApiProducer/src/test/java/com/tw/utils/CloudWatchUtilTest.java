@@ -5,13 +5,10 @@ import com.amazonaws.services.cloudwatch.model.*;
 import com.amazonaws.http.SdkHttpMetadata;
 import com.amazonaws.http.HttpResponse;
 
-import com.tw.services.ApiProducer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
@@ -28,7 +25,7 @@ import static org.mockito.Mockito.*;
 public class CloudWatchUtilTest {
 
     @InjectMocks
-    private CloudWatchUtil cloudWatchUtil;
+    private DummyCloudWatchUtil cloudWatchUtil;
 
     @Mock
     private Logger logger;
@@ -36,26 +33,28 @@ public class CloudWatchUtilTest {
     @Mock
     private AmazonCloudWatch cw;
 
+
     @Value("${spring.profiles.active}")
     private String testAppName;
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException {
+        MockitoAnnotations.initMocks(this);
+
         Field appNameField = CloudWatchUtil.class.getDeclaredField("appName");
         appNameField.setAccessible(true);
         appNameField.set(cloudWatchUtil, testAppName);
 
-        PutMetricDataResult expectedResponse = Mockito.mock(PutMetricDataResult.class);
-
-        SdkHttpMetadata sdkHttpMetadataMock = SdkHttpMetadata.from( new HttpResponse(null, null) {
+        PutMetricDataResult responseMock = Mockito.mock(PutMetricDataResult.class);
+        SdkHttpMetadata sdkHttpMetadataMock = SdkHttpMetadata.from(new HttpResponse(null, null) {
             @Override
             public int getStatusCode() {
                 return 200;
             }
         });
-        when(expectedResponse.getSdkHttpMetadata()).thenReturn(sdkHttpMetadataMock);
+        when(responseMock.getSdkHttpMetadata()).thenReturn(sdkHttpMetadataMock);
+        when(cw.putMetricData(any())).thenReturn(responseMock);
 
-        when(cw.putMetricData(any())).thenReturn(expectedResponse);
     }
 
     @Test
@@ -73,7 +72,7 @@ public class CloudWatchUtilTest {
 
         Dimension expectedDimensionInstanceId = new Dimension()
                 .withName("InstanceId")
-                .withValue("InstanceId");
+                .withValue("test-instance-id");
 
         Set<Dimension> expectedDimensionSet = new HashSet<>();
         expectedDimensionSet.add(expectedDimensionAppName);
@@ -103,7 +102,7 @@ public class CloudWatchUtilTest {
 
         Dimension expectedDimensionInstanceId = new Dimension()
                 .withName("InstanceId")
-                .withValue("InstanceId");
+                .withValue("test-instance-id");
 
         Set<Dimension> expectedDimensionSet = new HashSet<>();
         expectedDimensionSet.add(expectedDimensionAppName);
@@ -120,6 +119,18 @@ public class CloudWatchUtilTest {
                 .withMetricData(datum);
 
         verify(cw).putMetricData(expectedRequest);
+    }
+
+    static class DummyCloudWatchUtil extends CloudWatchUtil {
+
+        public DummyCloudWatchUtil(AmazonCloudWatch cw) {
+            super(cw);
+        }
+
+        @Override
+        public String getInstanceIdWrapper() {
+            return "test-instance-id";
+        }
     }
 
 }

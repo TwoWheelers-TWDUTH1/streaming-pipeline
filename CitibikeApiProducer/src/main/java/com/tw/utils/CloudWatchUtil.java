@@ -7,6 +7,7 @@ import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
 import com.amazonaws.services.cloudwatch.model.PutMetricDataResult;
 import com.amazonaws.services.cloudwatch.model.StandardUnit;
 
+import com.amazonaws.util.EC2MetadataUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,10 @@ public class CloudWatchUtil {
         this.cw = cw;
     }
 
+    public String getInstanceIdWrapper(){
+        return EC2MetadataUtils.getInstanceId(); //Instead of calling the static method directly, we are wrapping it in a non static method
+    }
+
     public PutMetricDataResult sendHeartBeat() {
         return this.putMetric("is_app_running", 1.0, StandardUnit.None);
     }
@@ -39,7 +44,7 @@ public class CloudWatchUtil {
 
         Dimension dimensionInstanceId = new Dimension()
                 .withName("InstanceId")
-                .withValue("InstanceId");
+                .withValue(this.getInstanceIdWrapper());
 
         Set<Dimension> dimensionSet = new HashSet<>();
         dimensionSet.add(dimensionAppName);
