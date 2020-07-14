@@ -1,10 +1,16 @@
 package com.tw.apps
 
 import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
-import com.amazonaws.services.cloudwatch.model.{MetricDatum, PutMetricDataRequest, StandardUnit}
+import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.spark.sql
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
+
+import scala.collection.mutable
+import scala.io.{BufferedSource, Source}
 
 object SmokeTest {
 
@@ -82,7 +88,7 @@ object SmokeTest {
     probes
   }
 
-  def runAssertions(df: DataFrame, cw: AmazonCloudWatch, currentTimeInSeconds: Long) = {
+  def runAssertions(df: DataFrame, cw: AmazonCloudWatch, currentTimeInSeconds: Long, jobFlowId: String) = {
 
     val probes = List.concat(
       assertThatStationIdsAreUnique(df),
@@ -92,28 +98,40 @@ object SmokeTest {
       assertThatUpdatesAreRecent(df, currentTimeInSeconds)
     )
 
-    publishMetrics(cw, probes)
+    publishMetrics(cw, probes, jobFlowId)
 
     probes
   }
 
-  def publishMetrics(cw: AmazonCloudWatch, probes: List[(String, Boolean, Int, StandardUnit)]) = {
+  def publishMetrics(cw: AmazonCloudWatch, probes: List[(String, Boolean, Int, StandardUnit)], jobFlowId: String) = {
     probes.map( probe => {
-      publishMetric(cw, probe._1, probe._3, probe._4)
+      publishMetric(cw, probe._1, probe._3, probe._4, jobFlowId)
     })
   }
 
-  def publishMetric(cw: AmazonCloudWatch, metric : String, value: Int, unit: StandardUnit): Unit = {
+  def publishMetric(cw: AmazonCloudWatch, metric : String, value: Int, unit: StandardUnit, jobFlowId: String): Unit = {
+
+    val dimensionJobFlowId = new Dimension()
+      .withName("JobFlowId")
+      .withValue(jobFlowId)
+
     val datum = new MetricDatum()
       .withMetricName(metric)
       .withUnit(unit)
       .withValue(value.toDouble)
+      .withDimensions(dimensionJobFlowId)
 
     val request = new PutMetricDataRequest()
       .withNamespace("stationMart-monitoring")
       .withMetricData(datum)
 
     cw.putMetricData(request)
+  }
+
+  def parseJsonWithJackson(json: BufferedSource): mutable.Map[String, Object] = {
+    val attrMapper = new ObjectMapper() with ScalaObjectMapper
+    attrMapper.registerModule(DefaultScalaModule)
+    attrMapper.readValue[mutable.Map[String, Object]](json.reader())
   }
 
   def main(args: Array[String]): Unit = {
@@ -123,6 +141,9 @@ object SmokeTest {
     }
 
     val inputFile = args(0)
+
+    val jobFlowInfoFile = "/mnt/var/lib/info/job-flow.json"
+    val jobFlowId: String = parseJsonWithJackson(Source.fromFile(jobFlowInfoFile)).get("jobFlowId").mkString
 
     val spark = SparkSession.builder
       .appName("SmokeTest")
@@ -134,7 +155,7 @@ object SmokeTest {
       .csv(inputFile)
       .cache()
     val cw = AmazonCloudWatchClientBuilder.defaultClient
-    val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000)
+    val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000, jobFlowId)
 
     val failures = probes.filter( probe => {
       probe._2 == true

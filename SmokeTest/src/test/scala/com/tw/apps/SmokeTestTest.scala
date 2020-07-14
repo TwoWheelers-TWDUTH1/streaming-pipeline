@@ -4,9 +4,8 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.amazonaws.services.cloudwatch.model.{PutMetricDataRequest, StandardUnit}
 import org.apache.spark.sql
 import org.apache.spark.sql.SparkSession
+import org.mockito.Mockito.{times, verify}
 import org.mockito.{ArgumentCaptor, Mockito}
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.times
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
 
@@ -26,7 +25,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
   }
 
   def getProbes(df: sql.DataFrame) = {
-    SmokeTest.runAssertions(df, cloudWatchMock, 1594115095)
+    SmokeTest.runAssertions(df, cloudWatchMock, 1594115095, "")
   }
 
   feature("sending metrics to CloudWatch") {
@@ -42,7 +41,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
         )
       )
 
-      SmokeTest.publishMetrics(cloudWatchMock, probes)
+      SmokeTest.publishMetrics(cloudWatchMock, probes, "")
 
       val requestCaptor : ArgumentCaptor[PutMetricDataRequest] = ArgumentCaptor.forClass(classOf[PutMetricDataRequest])
       verify(cloudWatchMock, times(2)).putMetricData(requestCaptor.capture())
@@ -50,13 +49,14 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
 
     scenario("sends metrics with the right arguments") {
       val OVER_NINE_THOUSAND = 9001
+      val JOB_FLOW_ID = "mock-job-flow-id"
       val probes: List[(String, Boolean, Int, StandardUnit)] = List(
         (
           "some-probe-metric", true, OVER_NINE_THOUSAND, StandardUnit.Count
         )
       )
 
-      SmokeTest.publishMetrics(cloudWatchMock, probes)
+      SmokeTest.publishMetrics(cloudWatchMock, probes, JOB_FLOW_ID)
 
       val requestCaptor : ArgumentCaptor[PutMetricDataRequest] = ArgumentCaptor.forClass(classOf[PutMetricDataRequest])
       verify(cloudWatchMock, times(1)).putMetricData(requestCaptor.capture())
@@ -67,6 +67,8 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
       metricDatum.getValue shouldEqual(OVER_NINE_THOUSAND)
       metricDatum.getMetricName shouldEqual("some-probe-metric")
       metricDatum.getUnit shouldEqual("Count")
+      metricDatum.getDimensions.get(0).getName shouldEqual("JobFlowId")
+      metricDatum.getDimensions.get(0).getValue shouldEqual(JOB_FLOW_ID)
     }
   }
 
@@ -91,7 +93,7 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
     scenario("recognises stale data") {
       val validDF = readCsv("./src/test/resources/valid.csv")
 
-      val probes = SmokeTest.runAssertions(validDF, cloudWatchMock, 1594125095)
+      val probes = SmokeTest.runAssertions(validDF, cloudWatchMock, 1594125095, "")
 
       val failureProbeCount = probes.count( probe => {
         probe._1 == "station-last-updated-age" && probe._2
