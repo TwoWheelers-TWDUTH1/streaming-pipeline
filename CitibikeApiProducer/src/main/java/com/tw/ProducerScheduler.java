@@ -9,8 +9,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.tw.utils.CloudWatchUtil;
+
 @Component
 public class ProducerScheduler {
+
+    private CloudWatchUtil cloudwatchUtil = new CloudWatchUtil();
 
     @Autowired
     private ApiProducer apiProducer;
@@ -25,5 +29,10 @@ public class ProducerScheduler {
         HttpEntity<String> response = template.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
 
         apiProducer.sendMessage(response);
+    }
+
+    @Scheduled(fixedRate = 1000 * 60)
+    public void scheduledCloudwatch() {
+        cloudwatchUtil.sendHeartBeat();
     }
 }
