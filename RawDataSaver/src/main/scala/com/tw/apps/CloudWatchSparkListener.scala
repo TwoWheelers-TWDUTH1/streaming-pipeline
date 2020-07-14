@@ -33,12 +33,16 @@ class CloudWatchSparkListener(appName: String, jobFlowFilePath: String, cloudWat
   }
 
   def getJobFlowId: String = {
-    val path = Source.fromFile(jobFlowFilePath)
-    val fileContent = JSON.parseFull(path.mkString)
-      .getOrElse(Map[String, Any]().empty).asInstanceOf[Map[String, Any]]
+    val source = Source.fromFile(jobFlowFilePath)
+    try {
+      val fileContent = JSON.parseFull(source.mkString)
+        .getOrElse(Map[String, Any]().empty).asInstanceOf[Map[String, Any]]
 
-    fileContent
-      .get("jobFlowId").asInstanceOf[Option[String]].getOrElse("couldn't parse jobFlowId")
+      fileContent
+        .get("jobFlowId").asInstanceOf[Option[String]].getOrElse("couldn't parse jobFlowId")
+    } finally {
+      source.close
+    }
   }
 
   def pushMetric(metricName: String, value: Double, unit: StandardUnit): Unit = {

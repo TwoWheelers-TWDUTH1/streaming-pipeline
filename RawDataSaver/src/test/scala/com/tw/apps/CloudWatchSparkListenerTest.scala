@@ -12,13 +12,12 @@ import org.scalatest.matchers.should.Matchers
 import scala.collection.JavaConversions._
 
 class CloudWatchSparkListenerTest extends AnyFeatureSpec with Matchers with MockFactory {
+  val jobFlowFilePath = getClass.getResource("/job-flow.json").getPath
 
-  private val jobFlowFilePath = getClass.getResource("/resources/job-flow.json").getFile
   Feature("Extract information from Job Flow file") {
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
 
     Scenario("Parse job-flow id") {
-
       val listener = new CloudWatchSparkListener("some-app", jobFlowFilePath, mock[AmazonCloudWatch])
 
       listener.getJobFlowId should be("j-XN2TG35DXXN")
@@ -29,7 +28,6 @@ class CloudWatchSparkListenerTest extends AnyFeatureSpec with Matchers with Mock
     val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
 
     Scenario("onQueryStarted should send a is_app_running with value = 1") {
-      val jobFlowFileStream = getClass.getResourceAsStream("/job-flow.json")
       val cloudWatchClientMock = mock[AmazonCloudWatch]
       val listener = new CloudWatchSparkListener("some-app", jobFlowFilePath, cloudWatchClientMock)
 
@@ -42,7 +40,6 @@ class CloudWatchSparkListenerTest extends AnyFeatureSpec with Matchers with Mock
     }
 
     Scenario("onQueryProgress should send a is_app_running with value = 1") {
-      val jobFlowFileStream = getClass.getResourceAsStream("/job-flow.json")
       val cloudWatchClientMock = mock[AmazonCloudWatch]
       val listener = new CloudWatchSparkListener("some-app", jobFlowFilePath, cloudWatchClientMock)
 
@@ -55,7 +52,6 @@ class CloudWatchSparkListenerTest extends AnyFeatureSpec with Matchers with Mock
     }
 
     Scenario("onQueryTerminated should send a is_app_running with value = 0") {
-      val jobFlowFileStream = getClass.getResourceAsStream("/job-flow.json")
       val cloudWatchClientMock = mock[AmazonCloudWatch]
       val listener = new CloudWatchSparkListener("some-app", jobFlowFilePath, cloudWatchClientMock)
 
