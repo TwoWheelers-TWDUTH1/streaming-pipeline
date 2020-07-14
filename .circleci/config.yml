@@ -80,7 +80,7 @@ jobs:
                   fingerprints:
                       - "12:aa:8b:5d:d6:30:c5:de:13:08:5b:ae:55:f7:e1:4b"
             - run:
-                  command: ssh ec2-user@ec2-13-251-216-34.ap-southeast-1.compute.amazonaws.com "echo hello world"
+                  command: ssh -o StrictHostKeyChecking=no ec2-user@ec2-13-251-216-34.ap-southeast-1.compute.amazonaws.com "echo hello world"
 #                  command: ./sbin/deploy-test-kafka.sh $TEST_BASTION_PUBLIC_IP $TRAINING_COHORT_TEST
 workflows:
     version: 2
