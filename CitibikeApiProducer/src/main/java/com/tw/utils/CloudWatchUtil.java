@@ -11,13 +11,11 @@ import com.amazonaws.util.EC2MetadataUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.HashSet;
 
-@Component
 public class CloudWatchUtil {
 
     @Value("${application.name}")
