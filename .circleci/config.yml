@@ -46,6 +46,18 @@ jobs:
                 paths:
                     - "~/.gradle"
 
+    deploy_to_test_environment:
+        <<: *defaults
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: /home/circleci/project
+            - add_ssh_keys:
+                  fingerprints:
+                      - "12:aa:8b:5d:d6:30:c5:de:13:08:5b:ae:55:f7:e1:4b"
+            - run:
+                  command: ./sbin/deploy.sh $TEST_BASTION_PUBLIC_IP $TRAINING_COHORT_TEST
+
     deploy:
         <<: *defaults
         steps:
@@ -83,8 +95,6 @@ workflows:
 
     build_and_deploy:
         jobs:
-            - approve_prod_build_deploy:
-                  type: approval
             - build:
                 requires:
                     - approve_prod_build_deploy
@@ -93,6 +103,9 @@ workflows:
                         only:
                             - master
                             - start
+            - deploy_test_environment
+            - approve_prod_deploy:
+                  type: approval
             - deploy:
                 requires:
                     - build
