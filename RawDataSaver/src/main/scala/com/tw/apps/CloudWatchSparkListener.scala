@@ -10,7 +10,7 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 
-import scala.collection.mutable
+import scala.collection.{JavaConversions, mutable}
 import scala.io.{BufferedSource, Source}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -26,17 +26,17 @@ class CloudWatchSparkListener(appName: String = "ApplicationName") extends Strea
 
   override def onQueryStarted(event: QueryStartedEvent): Unit = {
     log.info("Cloudwatch Streaming Listener, onQueryStarted: " + appName)
-    pushMetric(dimensionsMap, "is_app_running", 1, StandardUnit.Count)
+    pushMetric("is_app_running", 1, StandardUnit.Count)
   }
 
   override def onQueryProgress(event: QueryProgressEvent): Unit = {
     log.info("Cloudwatch Streaming Listener, onQueryProgress: " + appName)
-    pushMetric(dimensionsMap, "is_app_running", 1, StandardUnit.Count)
+    pushMetric("is_app_running", 1, StandardUnit.Count)
   }
 
   override def onQueryTerminated(event: QueryTerminatedEvent): Unit = {
     log.info("Cloudwatch Streaming Listener, onQueryTerminated: " + appName)
-    pushMetric(dimensionsMap, "is_app_running", 0, StandardUnit.Count)
+    pushMetric("is_app_running", 0, StandardUnit.Count)
   }
 
   def parseJsonWithJackson(json: BufferedSource): mutable.Map[String, Object] = {
@@ -45,31 +45,21 @@ class CloudWatchSparkListener(appName: String = "ApplicationName") extends Strea
     attrMapper.readValue[mutable.Map[String, Object]](json.reader())
   }
 
-  def pushMetric(dimensionItems: mutable.Map[String, String], metricName: String, value: Double, unit: StandardUnit) {
-    val dimensions = new util.ArrayList[Dimension]()
-
-    for ((k, v) <- dimensionItems) {
-      val dimension = new Dimension().withName(k).withValue(v)
-      dimensions.add(dimension)
-    }
-
+  def pushMetric(metricName: String, value: Double, unit: StandardUnit): Unit = {
     val dimensionAppName = new Dimension()
       .withName("ApplicationName")
       .withValue(appName)
 
-    dimensions.add(dimensionAppName)
-
-    val dimentionsJobFlowId = new Dimension()
+    val dimensionJobFlowId = new Dimension()
       .withName("JobFlowId")
       .withValue(jobFlowId)
-
-    dimensions.add(dimentionsJobFlowId)
 
     val datum = new MetricDatum()
       .withMetricName(metricName)
       .withUnit(unit)
       .withValue(value)
-      .withDimensions(dimensions)
+      .withDimensions(JavaConversions.setAsJavaSet(
+        Set(dimensionAppName, dimensionJobFlowId)))
 
     val request = new PutMetricDataRequest()
       .withNamespace("AWS/ElasticMapReduce")
