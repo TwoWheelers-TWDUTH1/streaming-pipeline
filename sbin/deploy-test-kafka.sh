@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
 if [ $# -eq 0 ]; then
-    usage
-    exit 1
+  usage
+  exit 1
 fi
 
 BASTION_PUBLIC_IP=$1
 TRAINING_COHORT=$2
-
 
 echo "====Updating SSH Config===="
 
@@ -33,7 +32,7 @@ Host bastion.${TRAINING_COHORT}.training
     User ec2-user
     HostName ${BASTION_PUBLIC_IP}
     DynamicForward 6789
-" >> ~/.ssh/config
+" >>~/.ssh/config
 
 ssh-add ~/.ssh/id_rsa_*
 
@@ -51,6 +50,13 @@ export kafka_server="\$(aws kafka get-bootstrap-brokers --cluster-arn "\${emr_ar
 export zk_command="zookeeper-client -server \${zk_broker_list}"
 sh /tmp/zookeeper-seed.sh
 EOF
+
+kafka_server=$(
+  ssh emr-master.${TRAINING_COHORT}.training <<EOF
+emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
+aws kafka get-bootstrap-brokers --cluster-arn "\${emr_arn}" | jq .BootstrapBrokerStringTls -r
+EOF
+)
 
 echo "====Inserted app config in zookeeper===="
 
