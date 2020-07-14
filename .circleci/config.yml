@@ -103,7 +103,7 @@ workflows:
                         only:
                             - master
                             - start
-            - deploy_test_environment
+            - deploy_to_test_environment
             - approve_prod_deploy:
                   type: approval
             - deploy:
