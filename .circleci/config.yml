@@ -58,11 +58,37 @@ jobs:
             - run:
                 command: ./sbin/deploy.sh $BASTION_PUBLIC_IP $TRAINING_COHORT
 
+    deploy_test_kafka:
+        <<: *defaults
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: /home/circleci/project
+            - add_ssh_keys:
+                  fingerprints:
+                      - "b4:38:42:0f:3e:2b:f8:92:f9:ec:a9:14:3a:f0:d0:4b"
+            - run:
+                  command: ./sbin/deploy-test-kafka.sh $TEST_BASTION_PUBLIC_IP $TRAINING_COHORT_TEST
+
 workflows:
     version: 2
+
+    deploy_kafka_to_test:
+        jobs:
+            - deploy_test_kafka:
+                filters:
+                    branches:
+                        only:
+                            - master
+                            - start
+
     build_and_deploy:
         jobs:
+            - approve_prod_build_deploy:
+                  type: approval
             - build:
+                requires:
+                    - approve_prod_build_deploy
                 filters:
                     branches:
                         only:
@@ -71,4 +97,3 @@ workflows:
             - deploy:
                 requires:
                     - build
-

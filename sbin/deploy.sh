@@ -4,7 +4,7 @@ set -xe
 
 usage() {
     echo "Deployment script "
-    echo "./deply.sh BASTION_PUBLIC_IP TRAINING_COHORT"
+    echo "./deploy.sh BASTION_PUBLIC_IP TRAINING_COHORT"
 }
 
 if [ $# -eq 0 ]; then
