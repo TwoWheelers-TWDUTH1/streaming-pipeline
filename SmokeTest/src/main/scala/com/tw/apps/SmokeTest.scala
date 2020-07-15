@@ -149,11 +149,10 @@ object SmokeTest {
       .appName("SmokeTest")
       .getOrCreate()
 
-    lazy val output = spark.read
+    val output = spark.read
       .option("inferSchema", "true")
       .option("header", "true")
       .csv(inputFile)
-      .cache()
     val cw = AmazonCloudWatchClientBuilder.defaultClient
     val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000, jobFlowId)
 
