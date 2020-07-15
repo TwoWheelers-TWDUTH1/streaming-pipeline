@@ -1,28 +1,26 @@
 package com.tw.apps
 
-import java.io.FileInputStream
-
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
-import org.apache.spark.sql.SparkSession
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import org.apache.spark.streaming.{Duration, StreamingContext}
 
 object StationLocationApp {
   def main(args: Array[String]): Unit = {
 
     val retryPolicy = new ExponentialBackoffRetry(1000, 3)
-    if (args.length != 3) {
-      val message = "Three arguments are required: " +
-        "\"zookeeper server\" , \"application folder in zookeeper\" and \" scurity protocol\"!"
+    if (args.length < 2) {
+      val message = "At least two arguments are required: " +
+        "\"zookeeper server\" (requried), \"application folder in zookeeper\" (required), " +
+        "and kafka security protocol (optional)!"
       throw new IllegalArgumentException(message)
     }
     val zookeeperConnectionString = args(0)
 
     val zookeeperFolder = args(1)
 
-    val securityProtocol = args(2)
+    val securityProtocol = if (args.length < 3) "PLAINTEXT" else args(2)
 
     val zkClient = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy)
 
