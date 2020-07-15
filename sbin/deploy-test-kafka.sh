@@ -98,9 +98,27 @@ kill_process \${station_san_francisco}
 echo "====Runing Producers Killed===="
 
 echo "====Deploy Producers => MSK===="
-nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_information} --kafka.brokers=${kafka_server} --application.name=StationInformationIngesterMsk --kafka.security.protocol=SSL 1>/tmp/\${station_information}-msk.log 2>/tmp/\${station_information}-msk.error.log &
-nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_san_francisco} --kafka.brokers=${kafka_server}  --application.name=StationSFIngesterMsk --kafka.security.protocol=SSL 1>/tmp/\${station_san_francisco}-msk.log 2>/tmp/\${station_san_francisco}-msk.error.log &
-nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar --spring.profiles.active=\${station_status} --kafka.brokers=${kafka_server} --application.name=StationStatusIngesterMsk --kafka.security.protocol=SSL 1>/tmp/\${station_status}-msk.log 2>/tmp/\${station_status}-msk.error.log &
+nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar \
+  --spring.profiles.active=\${station_information} \
+  --kafka.brokers=${kafka_server} \
+  --application.name=StationInformationIngesterMsk \
+  --kafka.security.protocol=SSL \
+  1>/tmp/\${station_information}-msk.log 2>/tmp/\${station_information}-msk.error.log &
+
+nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar \
+  --spring.profiles.active=\${station_san_francisco} \
+  --kafka.brokers=${kafka_server} \
+  --application.name=StationSFIngesterMsk \
+  --kafka.security.protocol=SSL \
+  1>/tmp/\${station_san_francisco}-msk.log 2>/tmp/\${station_san_francisco}-msk.error.log &
+
+nohup java -jar /tmp/tw-citibike-apis-producer0.1.0.jar \
+  --spring.profiles.active=\${station_status} \
+  --kafka.brokers=${kafka_server} \
+  --application.name=StationStatusIngesterMsk \
+  --kafka.security.protocol=SSL \
+  1>/tmp/\${station_status}-msk.log 2>/tmp/\${station_status}-msk.error.log &
+
 EOF
 
 echo "====Configure HDFS paths===="
@@ -136,9 +154,35 @@ echo "====Old Raw Data Saver Killed===="
 
 echo "====Deploy Raw Data Saver===="
 
-nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationLocationApp --name StationStatusSaverAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 /tmp/tw-raw-data-saver_2.11-0.0.1.jar "${zk_broker_list}" "/tw/stationStatus" SSL 1>/tmp/raw-station-status-data-saver-msk.log 2>/tmp/raw-station-status-data-saver-msk.error.log &
-nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationLocationApp --name StationInformationSaverAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 /tmp/tw-raw-data-saver_2.11-0.0.1.jar "${zk_broker_list}" "/tw/stationInformation" SSL 1>/tmp/raw-station-information-data-saver-msk.log 2>/tmp/raw-station-information-data-saver-msk.error.log &
-nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationLocationApp --name StationDataSFSaverAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 /tmp/tw-raw-data-saver_2.11-0.0.1.jar "${zk_broker_list}" "/tw/stationDataSF" SSL 1>/tmp/raw-station-data-sf-saver-msk.log 2>/tmp/raw-station-data-sf-saver-msk.error.log &
+nohup spark-submit --master yarn --deploy-mode cluster \
+  --class com.tw.apps.StationLocationApp \
+  --name StationStatusSaverAppMsk \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 \
+  --driver-memory 1G \
+  --conf spark.executor.memory=1G \
+  --conf spark.cores.max=1 \
+  /tmp/tw-raw-data-saver_2.11-0.0.1.jar "${zk_broker_list}" "/tw/stationStatus" "SSL" \
+  1>/tmp/raw-station-status-data-saver-msk.log 2>/tmp/raw-station-status-data-saver-msk.error.log &
+
+nohup spark-submit --master yarn --deploy-mode cluster \
+  --class com.tw.apps.StationLocationApp \
+  --name StationInformationSaverAppMsk \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 \
+  --driver-memory 1G \
+  --conf spark.executor.memory=1G \
+  --conf spark.cores.max=1 \
+  /tmp/tw-raw-data-saver_2.11-0.0.1.jar "${zk_broker_list}" "/tw/stationInformation" "SSL" \
+  1>/tmp/raw-station-information-data-saver-msk.log 2>/tmp/raw-station-information-data-saver-msk.error.log &
+
+nohup spark-submit --master yarn --deploy-mode cluster \
+  --class com.tw.apps.StationLocationApp \
+  --name StationDataSFSaverAppMsk \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 \
+  --driver-memory 1G \
+  --conf spark.executor.memory=1G \
+  --conf spark.cores.max=1 \
+  /tmp/tw-raw-data-saver_2.11-0.0.1.jar "${zk_broker_list}" "/tw/stationDataSF" "SSL" \
+  1>/tmp/raw-station-data-sf-saver-msk.log 2>/tmp/raw-station-data-sf-saver-msk.error.log &
 
 echo "====Raw Data Saver Deployed===="
 EOF
@@ -165,8 +209,24 @@ echo "====Old Station Consumers Killed===="
 
 echo "====Deploy Station Consumers===="
 
-nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp --name StationAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0  --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 --conf spark.dynamicAllocation.maxExecutors=5 /tmp/tw-station-consumer_2.11-0.0.1.jar "${kafka_server}" "SSL" 1>/tmp/station-consumer-msk.log 2>/tmp/station-consumer-msk.error.log &
-nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp --name StationTransformerNYCMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0  --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 /tmp/tw-station-transformer-nyc_2.11-0.0.1.jar "${kafka_server}" "SSL" 1>/tmp/station-transformer-nyc-msk.log 2>/tmp/station-transformer-nyc-msk.error.log &
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp \
+  --name StationAppMsk \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 \
+  --driver-memory 1G \
+  --conf spark.executor.memory=1G \
+  --conf spark.cores.max=1 \
+  --conf spark.dynamicAllocation.maxExecutors=5 \
+  /tmp/tw-station-consumer_2.11-0.0.1.jar "${kafka_server}" "SSL" \
+  1>/tmp/station-consumer-msk.log 2>/tmp/station-consumer-msk.error.log &
+
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp \
+  --name StationTransformerNYCMsk \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 \
+  --driver-memory 1G \
+  --conf spark.executor.memory=1G \
+  --conf spark.cores.max=1 \
+  /tmp/tw-station-transformer-nyc_2.11-0.0.1.jar "${kafka_server}" "SSL" \
+  1>/tmp/station-transformer-nyc-msk.log 2>/tmp/station-transformer-nyc-msk.error.log &
 
 echo "====Station Consumers Deployed===="
 
