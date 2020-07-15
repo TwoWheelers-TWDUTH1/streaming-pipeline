@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.spark.sql
+import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
@@ -150,8 +152,10 @@ object SmokeTest {
       .appName("SmokeTest")
       .getOrCreate()
 
+    val schema = ScalaReflection.schemaFor[StationData].dataType.asInstanceOf[StructType]
+
     val output = spark.read
-      .option("inferSchema", "true")
+      .schema(schema)
       .option("header", "true")
       .csv(inputFile)
       .persist(StorageLevel.DISK_ONLY)
