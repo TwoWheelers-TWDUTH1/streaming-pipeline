@@ -154,7 +154,7 @@ object SmokeTest {
       .option("inferSchema", "true")
       .option("header", "true")
       .csv(inputFile)
-      .persist(StorageLevel.MEMORY_AND_DISK)
+      .persist(StorageLevel.DISK_ONLY)
     val cw = AmazonCloudWatchClientBuilder.defaultClient
     val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000, jobFlowId)
 
