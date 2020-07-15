@@ -53,7 +53,7 @@ object StationLocationApp {
       .option("subscribe", topic)
       .option("startingOffsets", "latest")
       .option("failOnDataLoss", false)
-      .option("security.protocol", securityProtocol)
+      .option("kafka.security.protocol", securityProtocol)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .withColumn("date", date_format(current_date(), "yyyy-MM-dd"))
