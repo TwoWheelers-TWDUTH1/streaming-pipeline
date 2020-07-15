@@ -96,7 +96,7 @@ workflows:
                         only:
                             - master
                             - start
-            - deploy_kafka_to_test:
+            - deploy_test_kafka:
                 requires:
                     - build
             - deploy_to_test_environment:
