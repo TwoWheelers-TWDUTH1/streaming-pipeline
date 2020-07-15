@@ -13,15 +13,16 @@ object StationLocationApp {
   def main(args: Array[String]): Unit = {
 
     val retryPolicy = new ExponentialBackoffRetry(1000, 3)
-    if (args.length != 2) {
-      val message = "Two arguments are required: \"zookeeper server\" and \"application folder in zookeeper\"!"
+    if (args.length != 3) {
+      val message = "Three arguments are required: " +
+        "\"zookeeper server\" , \"application folder in zookeeper\" and \" scurity protocol\"!"
       throw new IllegalArgumentException(message)
     }
     val zookeeperConnectionString = args(0)
 
     val zookeeperFolder = args(1)
 
-    val securityProtocal = args(2)
+    val securityProtocol = args(2)
 
     val zkClient = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy)
 
@@ -52,7 +53,7 @@ object StationLocationApp {
       .option("subscribe", topic)
       .option("startingOffsets", "latest")
       .option("failOnDataLoss", false)
-      .option("security.protocol", securityProtocal)
+      .option("security.protocol", securityProtocol)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .withColumn("date", date_format(current_date(), "yyyy-MM-dd"))
