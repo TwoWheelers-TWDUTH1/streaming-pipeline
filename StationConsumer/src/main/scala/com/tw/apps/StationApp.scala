@@ -13,6 +13,8 @@ object StationApp {
 
     val zookeeperConnectionString = if (args.isEmpty) "zookeeper:2181" else args(0)
 
+    val securityProtocol = if (args.length < 2) "PLAINTEXT" else args(1)
+
     val retryPolicy = new ExponentialBackoffRetry(1000, 3)
 
     val zkClient = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy)
@@ -46,6 +48,7 @@ object StationApp {
       .option("kafka.bootstrap.servers", stationKafkaBrokers)
       .option("subscribe", nycStationTopic)
       .option("startingOffsets", "latest")
+      .option("kafka.security.protocol", securityProtocol)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .transform(nycStationStatusJson2DF(_, spark))
@@ -55,6 +58,7 @@ object StationApp {
       .option("kafka.bootstrap.servers", stationKafkaBrokers)
       .option("subscribe", sfStationTopic)
       .option("startingOffsets", "latest")
+      .option("kafka.security.protocol", securityProtocol)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .transform(sfStationStatusJson2DF(_, spark))
