@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.spark.sql
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable
 import scala.io.{BufferedSource, Source}
@@ -153,6 +154,7 @@ object SmokeTest {
       .option("inferSchema", "true")
       .option("header", "true")
       .csv(inputFile)
+      .persist(StorageLevel.MEMORY_AND_DISK)
     val cw = AmazonCloudWatchClientBuilder.defaultClient
     val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000, jobFlowId)
 
