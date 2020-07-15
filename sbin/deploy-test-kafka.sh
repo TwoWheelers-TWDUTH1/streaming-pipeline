@@ -41,22 +41,31 @@ echo "====SSH Config Updated===="
 echo "====Insert app config in MSK zookeeper===="
 scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-seed.sh
 
-ssh emr-master.${TRAINING_COHORT}.training <<EOF
-set -e
-zk_broker_list=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
-emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
-export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
-export kafka_server="\$(aws kafka get-bootstrap-brokers --cluster-arn "\${emr_arn}" | jq .BootstrapBrokerStringTls -r)"
-export zk_command="zookeeper-client -server \${zk_broker_list}"
-sh /tmp/zookeeper-seed.sh
+emr_arn=$(
+  ssh emr-master.${TRAINING_COHORT}.training <<EOF
+aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
 EOF
+)
+
+zk_broker_list=$(
+  ssh emr-master.${TRAINING_COHORT}.training <<EOF
+aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
+EOF
+)
 
 kafka_server=$(
   ssh emr-master.${TRAINING_COHORT}.training <<EOF
-emr_arn=\$(aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
-aws kafka get-bootstrap-brokers --cluster-arn "\${emr_arn}" | jq .BootstrapBrokerStringTls -r
+aws kafka get-bootstrap-brokers --cluster-arn "${emr_arn}" | jq .BootstrapBrokerStringTls -r
 EOF
 )
+
+ssh emr-master.${TRAINING_COHORT}.training <<EOF
+set -e
+export hdfs_server="emr-master.${TRAINING_COHORT}.training:8020"
+export kafka_server="${kafka_server}"
+export zk_command="zookeeper-client -server ${zk_broker_list}"
+sh /tmp/zookeeper-seed.sh
+EOF
 
 echo "====Inserted app config in zookeeper===="
 
@@ -105,3 +114,31 @@ sh /tmp/hdfs-seed.sh
 EOF
 
 echo "====HDFS paths configured==="
+
+echo "====Copy Raw Data Saver Jar to EMR===="
+scp RawDataSaver/target/scala-2.11/tw-raw-data-saver_2.11-0.0.1.jar emr-master.${TRAINING_COHORT}.training:/tmp/
+echo "====Raw Data Saver Jar Copied to EMR===="
+
+scp sbin/go.sh emr-master.${TRAINING_COHORT}.training:/tmp/go.sh
+
+ssh emr-master.${TRAINING_COHORT}.training <<EOF
+set -e
+
+source /tmp/go.sh
+
+echo "====Kill Old Raw Data Saver===="
+
+kill_application "StationStatusSaverAppMsk"
+kill_application "StationInformationSaverAppMsk"
+kill_application "StationDataSFSaverAppMsk"
+
+echo "====Old Raw Data Saver Killed===="
+
+echo "====Deploy Raw Data Saver===="
+
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationLocationApp --name StationStatusSaverAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --driver-memory 500M --conf spark.executor.memory=500m --conf spark.cores.max=1 /tmp/tw-raw-data-saver_2.11-0.0.1.jar ${zk_broker_list} "/tw/stationStatus" 1>/tmp/raw-station-status-data-saver-msk.log 2>/tmp/raw-station-status-data-saver-msk.error.log &
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationLocationApp --name StationInformationSaverAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --driver-memory 500M --conf spark.executor.memory=500m --conf spark.cores.max=1 /tmp/tw-raw-data-saver_2.11-0.0.1.jar ${zk_broker_list} "/tw/stationInformation" 1>/tmp/raw-station-information-data-saver-msk.log 2>/tmp/raw-station-information-data-saver-msk.error.log &
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationLocationApp --name StationDataSFSaverAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0 --driver-memory 500M --conf spark.executor.memory=500m --conf spark.cores.max=1 /tmp/tw-raw-data-saver_2.11-0.0.1.jar ${zk_broker_list} "/tw/stationDataSF" 1>/tmp/raw-station-data-sf-saver-msk.log 2>/tmp/raw-station-data-sf-saver-msk.error.log &
+
+echo "====Raw Data Saver Deployed===="
+EOF
