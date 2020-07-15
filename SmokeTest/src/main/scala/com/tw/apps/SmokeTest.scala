@@ -149,7 +149,7 @@ object SmokeTest {
       .appName("SmokeTest")
       .getOrCreate()
 
-    val output = spark.read
+    lazy val output = spark.read
       .option("inferSchema", "true")
       .option("header", "true")
       .csv(inputFile)
