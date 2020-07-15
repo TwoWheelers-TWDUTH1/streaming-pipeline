@@ -87,15 +87,6 @@ jobs:
 workflows:
     version: 2
 
-    deploy_kafka_to_test:
-        jobs:
-            - deploy_test_kafka:
-                filters:
-                    branches:
-                        only:
-                            - master
-                            - start
-
     build_and_deploy:
         jobs:
             - build:
@@ -105,6 +96,9 @@ workflows:
                         only:
                             - master
                             - start
+            - deploy_kafka_to_test:
+                requires:
+                    - build
             - deploy_to_test_environment:
                 requires:
                     - build
