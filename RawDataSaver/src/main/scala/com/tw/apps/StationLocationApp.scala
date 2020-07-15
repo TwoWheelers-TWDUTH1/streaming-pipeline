@@ -21,6 +21,8 @@ object StationLocationApp {
 
     val zookeeperFolder = args(1)
 
+    val securityProtocal = args(2)
+
     val zkClient = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy)
 
     zkClient.start
@@ -50,6 +52,7 @@ object StationLocationApp {
       .option("subscribe", topic)
       .option("startingOffsets", "latest")
       .option("failOnDataLoss", false)
+      .option("security.protocol", securityProtocal)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
       .withColumn("date", date_format(current_date(), "yyyy-MM-dd"))
