@@ -43,13 +43,13 @@ scp ./zookeeper/seed.sh emr-master.${TRAINING_COHORT}.training:/tmp/zookeeper-se
 
 emr_arn=$(
   ssh emr-master.${TRAINING_COHORT}.training <<EOF
-aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r)
+aws kafka list-clusters | jq .ClusterInfoList[0].ClusterArn -r
 EOF
 )
 
 zk_broker_list=$(
   ssh emr-master.${TRAINING_COHORT}.training <<EOF
-aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r)
+aws kafka list-clusters | jq .ClusterInfoList[0].ZookeeperConnectString -r
 EOF
 )
 
