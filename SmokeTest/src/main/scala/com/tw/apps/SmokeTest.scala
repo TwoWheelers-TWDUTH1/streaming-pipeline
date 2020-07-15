@@ -166,6 +166,8 @@ object SmokeTest {
       probe._1 == "station-last-updated-age"
     })
 
+    output.unpersist()
+
     println(ageProbe)
 
     if(failures.length > 0) {
