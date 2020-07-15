@@ -142,3 +142,32 @@ nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.Stati
 
 echo "====Raw Data Saver Deployed===="
 EOF
+
+echo "====Copy Station Consumers Jar to EMR===="
+scp StationConsumer/target/scala-2.11/tw-station-consumer_2.11-0.0.1.jar emr-master.${TRAINING_COHORT}.training:/tmp/
+
+scp StationTransformerNYC/target/scala-2.11/tw-station-transformer-nyc_2.11-0.0.1.jar emr-master.${TRAINING_COHORT}.training:/tmp/
+echo "====Station Consumers Jar Copied to EMR===="
+
+scp sbin/go.sh emr-master.${TRAINING_COHORT}.training:/tmp/go.sh
+
+ssh emr-master.${TRAINING_COHORT}.training <<EOF
+set -e
+
+source /tmp/go.sh
+
+echo "====Kill Old Station Consumers===="
+
+kill_application "StationAppMsk"
+kill_application "StationTransformerNYCMsk"
+
+echo "====Old Station Consumers Killed===="
+
+echo "====Deploy Station Consumers===="
+
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp --name StationAppMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0  --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 --conf spark.dynamicAllocation.maxExecutors=5 /tmp/tw-station-consumer_2.11-0.0.1.jar "${kafka_server}" "SSL" 1>/tmp/station-consumer-msk.log 2>/tmp/station-consumer-msk.error.log &
+nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp --name StationTransformerNYCMsk --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.0  --driver-memory 1G --conf spark.executor.memory=1G --conf spark.cores.max=1 /tmp/tw-station-transformer-nyc_2.11-0.0.1.jar "${kafka_server}" "SSL" 1>/tmp/station-transformer-nyc-msk.log 2>/tmp/station-transformer-nyc-msk.error.log &
+
+echo "====Station Consumers Deployed===="
+
+EOF
