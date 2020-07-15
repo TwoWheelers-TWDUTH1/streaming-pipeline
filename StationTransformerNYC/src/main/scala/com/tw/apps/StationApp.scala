@@ -2,6 +2,7 @@ package com.tw.apps
 
 import StationInformationTransformation.stationInformationJson2DF
 import StationStatusTransformation._
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.spark.sql.SparkSession
@@ -32,8 +33,12 @@ object StationApp {
       zkClient.getData.watched.forPath("/tw/stationDataNYC/checkpointLocation"))
 
     val spark = SparkSession.builder
-      .appName("NewYorkStationTransformer")
       .getOrCreate()
+
+    val runtimeAppName = spark.sparkContext.appName
+    val filePath = "/mnt/var/lib/info/job-flow.json"
+    val cwListener = new CloudWatchSparkListener(runtimeAppName, filePath, AmazonCloudWatchClientBuilder.defaultClient())
+    spark.streams.addListener(cwListener)
 
     import spark.implicits._
 
