@@ -25,9 +25,8 @@ class CloudWatchSparkListener(appName: String, jobFlowFilePath: String, cloudWat
   override def onQueryProgress(event: QueryProgressEvent): Unit = {
     log.info("Cloudwatch Streaming Listener, onQueryProgress: " + appName)
     pushMetric("is_app_running", 1, StandardUnit.Count)
-
-    if ( !event.progress.inputRowsPerSecond.isNaN ) pushMetric("inputRowsPerSecond", event.progress.inputRowsPerSecond, StandardUnit.Seconds)
-    if ( !event.progress.processedRowsPerSecond.isNaN ) pushMetric("processedRowsPerSecond", event.progress.processedRowsPerSecond, StandardUnit.Seconds)
+    if ( !event.progress.inputRowsPerSecond.isNaN ) pushMetric("inputRowsPerSecond", event.progress.inputRowsPerSecond, StandardUnit.Count)
+    if ( !event.progress.processedRowsPerSecond.isNaN ) pushMetric("processedRowsPerSecond", event.progress.processedRowsPerSecond, StandardUnit.Count)
     pushMetric("numberOfInputRows", event.progress.numInputRows, StandardUnit.Count)
   }
 
