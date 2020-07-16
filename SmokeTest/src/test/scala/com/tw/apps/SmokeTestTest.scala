@@ -25,20 +25,16 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
   }
 
   def getProbes(df: sql.DataFrame) = {
-    SmokeTest.runAssertions(df, cloudWatchMock, 1594115095, "")
+    SmokeTest.runAssertions(df, 1594115095L)
   }
 
   feature("sending metrics to CloudWatch") {
     scenario("sends metrics for each probe") {
       val OVER_NINE_THOUSAND = 9001
       val THE_MEANING_OF_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42
-      val probes: List[(String, Boolean, Int, StandardUnit)] = List(
-        (
-          "some-probe-metric", true, OVER_NINE_THOUSAND, StandardUnit.Count
-        ),
-        (
-          "another-probe-metric", false, THE_MEANING_OF_LIFE_THE_UNIVERSE_AND_EVERYTHING, StandardUnit.Count
-        )
+      val probes: List[Probe] = List(
+        Probe("some-probe-metric", true, OVER_NINE_THOUSAND, StandardUnit.Count),
+        Probe("another-probe-metric", false, THE_MEANING_OF_LIFE_THE_UNIVERSE_AND_EVERYTHING, StandardUnit.Count)
       )
 
       SmokeTest.publishMetrics(cloudWatchMock, probes, "")
@@ -50,10 +46,8 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
     scenario("sends metrics with the right arguments") {
       val OVER_NINE_THOUSAND = 9001
       val JOB_FLOW_ID = "mock-job-flow-id"
-      val probes: List[(String, Boolean, Int, StandardUnit)] = List(
-        (
-          "some-probe-metric", true, OVER_NINE_THOUSAND, StandardUnit.Count
-        )
+      val probes: List[Probe] = List(
+        Probe("some-probe-metric", true, OVER_NINE_THOUSAND, StandardUnit.Count)
       )
 
       SmokeTest.publishMetrics(cloudWatchMock, probes, JOB_FLOW_ID)
@@ -78,26 +72,20 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
 
       val probes = getProbes(validDF)
 
-      val failureProbeCount = probes.count( probe => {
-        probe._2 == true
-      })
+      val failureProbeCount = probes.count(_.failed)
 
-      val ageProbe = probes.filter( probe => {
-        probe._1 == "station-last-updated-age"
-      })
+      val ageProbe = probes.filter( _.name == "station-last-updated-age" )
 
       failureProbeCount shouldEqual(0)
-      ageProbe(0)._3 shouldEqual(10)
+      ageProbe(0).value shouldEqual(10)
     }
 
     scenario("recognises stale data") {
       val validDF = readCsv("./src/test/resources/valid.csv")
 
-      val probes = SmokeTest.runAssertions(validDF, cloudWatchMock, 1594125095, "")
+      val probes = SmokeTest.runAssertions(validDF, 1594125095L)
 
-      val failureProbeCount = probes.count( probe => {
-        probe._1 == "station-last-updated-age" && probe._2
-      })
+      val failureProbeCount = probes.count( probe => probe.name == "station-last-updated-age" && probe.failed)
 
       failureProbeCount shouldEqual(1)
     }
@@ -106,40 +94,32 @@ class SmokeTestTest extends FeatureSpec with MockitoSugar with Matchers with Giv
       val invalidDF = readCsv("./src/test/resources/has-null-longitude.csv")
       val probes = getProbes(invalidDF)
 
-      probes.count(probe => { probe._2 }) shouldEqual(1)
-      probes.count( probe => {
-        probe._2 == true && probe._1 == "null-longitude"
-      }) shouldEqual(1)
+      probes.count(_.failed) shouldEqual(1)
+      probes.count( probe => probe.failed && probe.name == "null-longitude") shouldEqual(1)
     }
 
     scenario("explodes when there are null latitudes") {
       val invalidDF = readCsv("./src/test/resources/has-null-latitude.csv")
       val probes = getProbes(invalidDF)
 
-      probes.count(probe => { probe._2 }) shouldEqual(1)
-      probes.count( probe => {
-        probe._2 == true && probe._1 == "null-latitude"
-      }) shouldEqual(1)
+      probes.count(_.failed) shouldEqual(1)
+      probes.count( probe => probe.failed && probe.name == "null-latitude") shouldEqual(1)
     }
 
     scenario("explodes when there are duplicated station_ids") {
       val invalidDF = readCsv("./src/test/resources/has-duplicated-station-ids.csv")
       val probes = getProbes(invalidDF)
 
-      probes.count(probe => { probe._2 }) shouldEqual(1)
-      probes.count( probe => {
-        probe._2 == true && probe._1 == "duplicated-station-ids"
-      }) shouldEqual(1)
+      probes.count(_.failed) shouldEqual(1)
+      probes.count( probe => probe.failed && probe.name == "duplicated-station-ids") shouldEqual(1)
     }
 
     scenario("explodes when there are negative counts") {
       val invalidDF = readCsv("./src/test/resources/has-negative-counts.csv")
       val probes = getProbes(invalidDF)
 
-      probes.count(probe => { probe._2 }) shouldEqual(1)
-      probes.count( probe => {
-        probe._2 == true && probe._1 == "negative-counts"
-      }) shouldEqual(1)
+      probes.count(_.failed) shouldEqual(1)
+      probes.count( probe => probe.failed && probe.name == "negative-counts") shouldEqual(1)
     }
   }
 }
