@@ -71,7 +71,7 @@ object StationApp {
       .map(_._2)
       .writeStream
       .format("overwriteCSV")
-      .outputMode("update")
+      .outputMode("append")
       .option("header", true)
       .option("truncate", false)
       .option("checkpointLocation", checkpointLocation)
