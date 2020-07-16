@@ -1,18 +1,29 @@
 package com.tw.apps
 
-import StationDataTransformation.nycStationStatusJson2DF
-import org.apache.spark.sql.SparkSession
+import com.tw.apps.StationDataTransformation.{nycStationStatusJson2DF, sfStationStatusJson2DF}
 import org.apache.spark.sql.catalyst.ScalaReflection
+import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.scalatest.GivenWhenThen
 import org.scalatest.featurespec.AnyFeatureSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.io.Source
+
 
 class StationDataTransformationTest extends AnyFeatureSpec with Matchers with GivenWhenThen {
+  val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
+  import spark.implicits._
 
+  private val BIKES_AVAILABLE_INDEX = 0
+  private val DOCKS_AVAILABLE_INDEX = 1
+  private val IS_RENTING_INDEX = 2
+  private val IS_RETURNING_INDEX = 3
+  private val LAST_UPDATED_INDEX = 4
+  private val STATION_ID_INDEX = 5
+  private val NAME_INDEX = 6
+  private val LATITUDE_INDEX = 7
+  private val LONGITUDE_INDEX = 8
   Feature("Apply station status transformations to data frame") {
-    val spark = SparkSession.builder.appName("Test App").master("local").getOrCreate()
-    import spark.implicits._
 
     Scenario("Transform nyc station data frame") {
 
@@ -39,35 +50,65 @@ class StationDataTransformationTest extends AnyFeatureSpec with Matchers with Gi
       val resultDF1 = testDF1.transform(nycStationStatusJson2DF(_, spark))
 
       Then("Useful columns are extracted")
-      resultDF1.schema.fields(0).name should be("bikes_available")
-      resultDF1.schema.fields(0).dataType.typeName should be("integer")
-      resultDF1.schema.fields(1).name should be("docks_available")
-      resultDF1.schema.fields(1).dataType.typeName should be("integer")
-      resultDF1.schema.fields(2).name should be("is_renting")
-      resultDF1.schema.fields(2).dataType.typeName should be("boolean")
-      resultDF1.schema.fields(3).name should be("is_returning")
-      resultDF1.schema.fields(3).dataType.typeName should be("boolean")
-      resultDF1.schema.fields(4).name should be("last_updated")
-      resultDF1.schema.fields(4).dataType.typeName should be("long")
-      resultDF1.schema.fields(5).name should be("station_id")
-      resultDF1.schema.fields(5).dataType.typeName should be("string")
-      resultDF1.schema.fields(6).name should be("name")
-      resultDF1.schema.fields(6).dataType.typeName should be("string")
-      resultDF1.schema.fields(7).name should be("latitude")
-      resultDF1.schema.fields(7).dataType.typeName should be("double")
-      resultDF1.schema.fields(8).name should be("longitude")
-      resultDF1.schema.fields(8).dataType.typeName should be("double")
+      validateStationInformationSchema(resultDF1)
 
       val row1 = resultDF1.head()
-      row1.get(0) should be(19)
-      row1.get(1) should be(41)
-      row1.get(2) shouldBe true
-      row1.get(3) shouldBe true
-      row1.get(4) should be(1536242527)
-      row1.get(5) should be("83")
-      row1.get(6) should be("Atlantic Ave & Fort Greene Pl")
-      row1.get(7) should be(40.68382604)
-      row1.get(8) should be(-73.97632328)
+      row1.get(BIKES_AVAILABLE_INDEX) should be(19)
+      row1.get(DOCKS_AVAILABLE_INDEX) should be(41)
+      row1.get(IS_RENTING_INDEX) shouldBe true
+      row1.get(IS_RETURNING_INDEX) shouldBe true
+      row1.get(LAST_UPDATED_INDEX) should be(1536242527)
+      row1.get(STATION_ID_INDEX) should be("83")
+      row1.get(NAME_INDEX) should be("Atlantic Ave & Fort Greene Pl")
+      row1.get(LATITUDE_INDEX) should be(40.68382604)
+      row1.get(LONGITUDE_INDEX) should be(-73.97632328)
     }
+
+    Scenario("Transform SF station data frame") {
+
+      val testStationData = Source.fromFile(getClass.getResource("/sf-example-payload.json").toURI).mkString
+
+      Given("Sample data for station_status")
+      val testDF1 = Seq(testStationData).toDF("raw_payload")
+
+
+      When("Transformations are applied")
+      val resultDF1 = testDF1.transform(sfStationStatusJson2DF(_, spark))
+
+      Then("Useful columns are extracted")
+      validateStationInformationSchema(resultDF1)
+
+      val row1 = resultDF1.head()
+      row1.get(BIKES_AVAILABLE_INDEX) should be(7)
+      row1.get(DOCKS_AVAILABLE_INDEX) should be(8)
+      row1.get(IS_RENTING_INDEX) shouldBe true
+      row1.get(IS_RETURNING_INDEX) shouldBe true
+      row1.get(LAST_UPDATED_INDEX) should be(1594887440)
+      row1.get(STATION_ID_INDEX) should be("d0e8f4f1834b7b33a3faf8882f567ab8")
+      row1.get(NAME_INDEX) should be("Harmon St at Adeline St")
+      row1.get(LATITUDE_INDEX) should be(37.849735)
+      row1.get(LONGITUDE_INDEX) should be(-122.270582)
+    }
+  }
+
+  private def validateStationInformationSchema(resultDF1: Dataset[Row]) = {
+        resultDF1.schema.fields(BIKES_AVAILABLE_INDEX).name should be("bikes_available")
+        resultDF1.schema.fields(BIKES_AVAILABLE_INDEX).dataType.typeName should be("integer")
+        resultDF1.schema.fields(DOCKS_AVAILABLE_INDEX).name should be("docks_available")
+        resultDF1.schema.fields(DOCKS_AVAILABLE_INDEX).dataType.typeName should be("integer")
+        resultDF1.schema.fields(IS_RENTING_INDEX).name should be("is_renting")
+        resultDF1.schema.fields(IS_RENTING_INDEX).dataType.typeName should be("boolean")
+        resultDF1.schema.fields(IS_RETURNING_INDEX).name should be("is_returning")
+        resultDF1.schema.fields(IS_RETURNING_INDEX).dataType.typeName should be("boolean")
+        resultDF1.schema.fields(LAST_UPDATED_INDEX).name should be("last_updated")
+        resultDF1.schema.fields(LAST_UPDATED_INDEX).dataType.typeName should be("long")
+        resultDF1.schema.fields(STATION_ID_INDEX).name should be("station_id")
+        resultDF1.schema.fields(STATION_ID_INDEX).dataType.typeName should be("string")
+        resultDF1.schema.fields(NAME_INDEX).name should be("name")
+        resultDF1.schema.fields(NAME_INDEX).dataType.typeName should be("string")
+        resultDF1.schema.fields(LATITUDE_INDEX).name should be("latitude")
+        resultDF1.schema.fields(LATITUDE_INDEX).dataType.typeName should be("double")
+        resultDF1.schema.fields(LONGITUDE_INDEX).name should be("longitude")
+        resultDF1.schema.fields(LONGITUDE_INDEX).dataType.typeName should be("double")
   }
 }

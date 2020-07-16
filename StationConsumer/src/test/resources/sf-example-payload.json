@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "producer_id": "producer_station-marseille",
+    "size": 48074,
+    "message_id": "3f32d23b-cca7-4be0-9e23-5a30b15e711e",
+    "ingestion_time": 1594883292122
+  },
+  "payload": {
+    "network": {
+      "company": [
+        "Motivate International, Inc."
+      ],
+      "gbfs_href": "https://gbfs.fordgobike.com/gbfs/gbfs.json",
+      "href": "/v2/networks/ford-gobike",
+      "id": "ford-gobike",
+      "location": {
+        "city": "San Francisco Bay Area, CA",
+        "country": "US",
+        "latitude": 37.7141454,
+        "longitude": -122.25
+      },
+      "name": "Bay Wheels",
+      "stations": [
+        {
+          "empty_slots": 8,
+          "extra": {
+            "address": null,
+            "last_updated": 1594881041,
+            "renting": 1,
+            "returning": 1,
+            "uid": "340"
+          },
+          "free_bikes": 7,
+          "id": "d0e8f4f1834b7b33a3faf8882f567ab8",
+          "latitude": 37.849735,
+          "longitude": -122.270582,
+          "name": "Harmon St at Adeline St",
+          "timestamp": "2020-07-16T08:17:20.278000Z"
+        }
+      ]
+    }
+  }
+}

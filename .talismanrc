@@ -1,0 +1,8 @@
+fileignoreconfig:
+- filename: StationConsumer/src/test/resources/sf-example-payload.json
+  checksum: f84eadda9ee826da27cc1e1b8fb1f3a16c1eb31c724f1256c8244b4377d24108
+  ignore_detectors: []
+- filename: StationConsumer/src/test/scala/com/tw/apps/StationDataTransformationTest.scala
+  checksum: 21a90a767b0f8612892c6643dee5f4d831436af8398261e255d19846b13adada
+  ignore_detectors: []
+scopeconfig: []
