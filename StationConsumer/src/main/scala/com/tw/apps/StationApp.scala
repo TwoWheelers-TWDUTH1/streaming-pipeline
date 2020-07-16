@@ -1,11 +1,10 @@
 package com.tw.apps
 
-import StationDataTransformation._
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder
+import com.tw.apps.StationDataTransformation._
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Duration, StreamingContext}
 
 object StationApp {
 
@@ -72,7 +71,7 @@ object StationApp {
       .map(_._2)
       .writeStream
       .format("overwriteCSV")
-      .outputMode("complete")
+      .outputMode("update")
       .option("header", true)
       .option("truncate", false)
       .option("checkpointLocation", checkpointLocation)
