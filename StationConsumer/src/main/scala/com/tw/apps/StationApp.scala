@@ -70,7 +70,7 @@ object StationApp {
       .reduceGroups((r1,r2)=>if (r1.last_updated > r2.last_updated) r1 else r2)
       .map(_._2)
       .writeStream
-      .format("overwriteCSV")
+      .format("csv")
       .outputMode("append")
       .option("header", true)
       .option("truncate", false)
