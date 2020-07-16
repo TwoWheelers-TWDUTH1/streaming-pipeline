@@ -83,11 +83,11 @@ object StationApp {
 
   }
 
-  private def loadKafkaJsonStream(securityProtocol: String, stationKafkaBrokers: String, nycStationTopic: String, spark: SparkSession) = {
+  private def loadKafkaJsonStream(securityProtocol: String, stationKafkaBrokers: String, topic: String, spark: SparkSession) = {
     spark.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", stationKafkaBrokers)
-      .option("subscribe", nycStationTopic)
+      .option("subscribe", topic)
       .option("startingOffsets", "latest")
       .option("auto.offset.reset", "smallest")
       .option("kafka.security.protocol", securityProtocol)
