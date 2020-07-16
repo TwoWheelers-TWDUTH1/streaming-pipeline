@@ -41,12 +41,15 @@ object SmokeTest {
   def assertThatUpdatesAreRecent(df: DataFrame, currentTimeInSeconds: Long) = {
     var probes : List[(String, Boolean, Int, StandardUnit)] = List()
 
-    val medianLastUpdateUnixTimestamp = df.stat.approxQuantile("last_updated", Array(0.5), 0.25)(0)
-    val currentUnixTimestamp = currentTimeInSeconds
+    val lastUpdatedMedian: Array[Double] = df.stat.approxQuantile("last_updated", Array(0.5), 0.25)
+    if (lastUpdatedMedian.length > 0) {
+      val medianLastUpdateUnixTimestamp = lastUpdatedMedian(0)
+      val currentUnixTimestamp = currentTimeInSeconds
 
-    val diffInSeconds = currentUnixTimestamp - medianLastUpdateUnixTimestamp
+      val diffInSeconds = currentUnixTimestamp - medianLastUpdateUnixTimestamp
 
-    probes = probes:+(("station-last-updated-age", diffInSeconds > 600, diffInSeconds.toInt, StandardUnit.Seconds))
+      probes = probes :+ (("station-last-updated-age", diffInSeconds > 600, diffInSeconds.toInt, StandardUnit.Seconds))
+    }
 
     probes
   }
