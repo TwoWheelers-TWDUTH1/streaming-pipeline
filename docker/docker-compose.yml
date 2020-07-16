@@ -87,6 +87,18 @@ services:
         environment:
           - JAVA_OPTIONS=-Xmx100m
 
+    station-marseille-producer:
+        build:
+            context: ../CitibikeApiProducer
+            dockerfile: Dockerfile-station-marseille
+        depends_on:
+          - kafka
+          - zookeeper-seed
+        networks:
+          - streaming-data-internal
+        environment:
+          - JAVA_OPTIONS=-Xmx100m
+
     raw-station-information-data-saver:
         build:
             context: ../RawDataSaver
