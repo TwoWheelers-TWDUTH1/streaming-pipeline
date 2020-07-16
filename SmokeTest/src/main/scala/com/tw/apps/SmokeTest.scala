@@ -154,11 +154,10 @@ object SmokeTest {
 
     val schema = ScalaReflection.schemaFor[StationData].dataType.asInstanceOf[StructType]
 
-    val output = spark.read
+    val output = spark.readStream
       .schema(schema)
       .option("header", "true")
       .csv(inputFile)
-      .persist(StorageLevel.DISK_ONLY)
     val cw = AmazonCloudWatchClientBuilder.defaultClient
     val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000, jobFlowId)
 
@@ -169,8 +168,6 @@ object SmokeTest {
     val ageProbe = probes.filter( probe => {
       probe._1 == "station-last-updated-age"
     })
-
-    output.unpersist()
 
     println(ageProbe)
 
