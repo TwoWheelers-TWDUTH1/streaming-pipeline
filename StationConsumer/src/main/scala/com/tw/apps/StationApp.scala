@@ -70,8 +70,8 @@ object StationApp {
       .reduceGroups((r1,r2)=>if (r1.last_updated > r2.last_updated) r1 else r2)
       .map(_._2)
       .writeStream
-      .format("csv")
-      .outputMode("append")
+      .format("overwriteCSV")
+      .outputMode("complete")
       .option("header", true)
       .option("truncate", false)
       .option("checkpointLocation", checkpointLocation)
