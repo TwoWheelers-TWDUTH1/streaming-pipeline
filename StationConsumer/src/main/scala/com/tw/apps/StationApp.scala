@@ -91,7 +91,6 @@ object StationApp {
       .option("startingOffsets", "latest")
       .option("auto.offset.reset", "smallest")
       .option("kafka.security.protocol", securityProtocol)
-      .option("failOnDataLoss", true)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
   }
