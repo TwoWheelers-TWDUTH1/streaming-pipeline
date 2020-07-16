@@ -12,13 +12,13 @@ import scala.util.parsing.json.JSON
 
 object StationDataTransformation {
 
-  val sfToStationStatus: String => Seq[StationData] = raw_payload => {
+  val cityBikeV2PayloadToStationStatus: String => Seq[StationData] = raw_payload => {
     val json = JSON.parseFull(raw_payload)
     val payload = json.get.asInstanceOf[Map[String, Any]]("payload")
-    extractSFStationStatus(payload)
+    extractCityBikesV2StationStatus(payload)
   }
 
-  private def extractSFStationStatus(payload: Any) = {
+  private def extractCityBikesV2StationStatus(payload: Any) = {
 
     val network: Any = payload.asInstanceOf[Map[String, Any]]("network")
 
@@ -29,8 +29,8 @@ object StationDataTransformation {
         StationData(
           x("free_bikes").asInstanceOf[Double].toInt,
           x("empty_slots").asInstanceOf[Double].toInt,
-          x("extra").asInstanceOf[Map[String, Any]]("renting").asInstanceOf[Double] == 1,
-          x("extra").asInstanceOf[Map[String, Any]]("returning").asInstanceOf[Double] == 1,
+          x("extra").asInstanceOf[Map[String, Any]].getOrElse("renting",1d).asInstanceOf[Double] == 1,
+          x("extra").asInstanceOf[Map[String, Any]].getOrElse("returning",1d).asInstanceOf[Double] == 1,
           Instant.from(DateTimeFormatter.ISO_INSTANT.parse(x("timestamp").asInstanceOf[String])).getEpochSecond,
           x("id").asInstanceOf[String],
           x("name").asInstanceOf[String],
@@ -40,8 +40,8 @@ object StationDataTransformation {
       })
   }
 
-  def sfStationStatusJson2DF(jsonDF: DataFrame, spark: SparkSession): DataFrame = {
-    val toStatusFn: UserDefinedFunction = udf(sfToStationStatus)
+  def citybikeV2StationStatusJson2DF(jsonDF: DataFrame, spark: SparkSession): DataFrame = {
+    val toStatusFn: UserDefinedFunction = udf(cityBikeV2PayloadToStationStatus)
 
     import spark.implicits._
 

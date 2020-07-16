@@ -1,6 +1,6 @@
 package com.tw.apps
 
-import com.tw.apps.StationDataTransformation.{nycStationStatusJson2DF, sfStationStatusJson2DF}
+import com.tw.apps.StationDataTransformation.{nycStationStatusJson2DF, citybikeV2StationStatusJson2DF}
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.scalatest.GivenWhenThen
@@ -73,7 +73,7 @@ class StationDataTransformationTest extends AnyFeatureSpec with Matchers with Gi
 
 
       When("Transformations are applied")
-      val resultDF1 = testDF1.transform(sfStationStatusJson2DF(_, spark))
+      val resultDF1 = testDF1.transform(citybikeV2StationStatusJson2DF(_, spark))
 
       Then("Useful columns are extracted")
       validateStationInformationSchema(resultDF1)
@@ -88,6 +88,32 @@ class StationDataTransformationTest extends AnyFeatureSpec with Matchers with Gi
       row1.get(NAME_INDEX) should be("Harmon St at Adeline St")
       row1.get(LATITUDE_INDEX) should be(37.849735)
       row1.get(LONGITUDE_INDEX) should be(-122.270582)
+    }
+
+    Scenario("Transform Marseille station data frame") {
+
+      val testStationData = Source.fromFile(getClass.getResource("/marseille-example-payload.json").toURI).mkString
+
+      Given("Sample data for station_status")
+      val testDF1 = Seq(testStationData).toDF("raw_payload")
+
+
+      When("Transformations are applied")
+      val resultDF1 = testDF1.transform(citybikeV2StationStatusJson2DF(_, spark))
+
+      Then("Useful columns are extracted")
+      validateStationInformationSchema(resultDF1)
+
+      val row1 = resultDF1.head()
+      row1.get(BIKES_AVAILABLE_INDEX) should be(8)
+      row1.get(DOCKS_AVAILABLE_INDEX) should be(11)
+      row1.get(IS_RENTING_INDEX) shouldBe true
+      row1.get(IS_RETURNING_INDEX) shouldBe true
+      row1.get(LAST_UPDATED_INDEX) should be(1594891680)
+      row1.get(STATION_ID_INDEX) should be("686e48654a218c70daf950a4e893e5b0")
+      row1.get(NAME_INDEX) should be("8149-391 MICHELET")
+      row1.get(LATITUDE_INDEX) should be(43.25402727813068)
+      row1.get(LONGITUDE_INDEX) should be(5.401873594694653)
     }
   }
 

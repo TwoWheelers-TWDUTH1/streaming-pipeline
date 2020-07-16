@@ -1,8 +1,11 @@
 fileignoreconfig:
-- filename: StationConsumer/src/test/resources/sf-example-payload.json
-  checksum: f84eadda9ee826da27cc1e1b8fb1f3a16c1eb31c724f1256c8244b4377d24108
+- filename: StationConsumer/src/test/resources/marseille-example-payload.json
+  checksum: a5b78b7ae6338cc97d6b90a7a2cfa657795823280c9b988101330f983c0805ef
   ignore_detectors: []
 - filename: StationConsumer/src/test/scala/com/tw/apps/StationDataTransformationTest.scala
-  checksum: 21a90a767b0f8612892c6643dee5f4d831436af8398261e255d19846b13adada
+  checksum: 127df6859e35d50033e271060f7c445a18a0cc9849eb827872e0ff9b019a1090
+  ignore_detectors: []
+- filename: StationConsumer/src/test/resources/sf-example-payload.json
+  checksum: f84eadda9ee826da27cc1e1b8fb1f3a16c1eb31c724f1256c8244b4377d24108
   ignore_detectors: []
 scopeconfig: []
