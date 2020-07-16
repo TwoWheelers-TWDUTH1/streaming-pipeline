@@ -1,7 +1,7 @@
 package com.tw.apps
 
-import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
 import com.amazonaws.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
+import com.amazonaws.services.cloudwatch.{AmazonCloudWatch, AmazonCloudWatchClientBuilder}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
@@ -17,30 +17,25 @@ import scala.io.{BufferedSource, Source}
 
 object SmokeTest {
 
-  def assertThatLatitudeAndLongitudeAreNeverNull(df: sql.DataFrame) = {
-    var probes : List[(String, Boolean, Int, StandardUnit)] = List()
-
+  def assertThatLongitudeIsNeverNull(df: sql.DataFrame): Probe = {
     val nullLongitudeCount = df.where("longitude is null").count().toInt
-    probes = probes:+(("null-longitude", nullLongitudeCount > 0, nullLongitudeCount, StandardUnit.Count))
 
+    Probe("null-longitude", nullLongitudeCount > 0, nullLongitudeCount, StandardUnit.Count)
+  }
+
+  def assertThatLatitudeIsNeverNull(df: sql.DataFrame): Probe = {
     val nullLatitudeCount = df.where("latitude is null").count().toInt
-    probes = probes:+(("null-latitude", nullLatitudeCount > 0, nullLatitudeCount, StandardUnit.Count))
 
-    probes
+    Probe("null-latitude", nullLatitudeCount > 0, nullLatitudeCount, StandardUnit.Count)
   }
 
-  def assertThatNoCountsAreNegative(df: sql.DataFrame) = {
-    var probes : List[(String, Boolean, Int, StandardUnit)] = List()
-    val stationsWithNegativeCount = df.
-        where("bikes_available < 0 OR docks_available < 0").count().toInt
+  def assertThatNoCountsAreNegative(df: sql.DataFrame): Probe = {
+    val stationsWithNegativeCount = df.where("bikes_available < 0 OR docks_available < 0").count().toInt
 
-    probes = (probes:+(("negative-counts", stationsWithNegativeCount > 0, stationsWithNegativeCount, StandardUnit.Count)))
-    probes
+    Probe("negative-counts", stationsWithNegativeCount > 0, stationsWithNegativeCount, StandardUnit.Count)
   }
 
-  def assertThatUpdatesAreRecent(df: DataFrame, currentTimeInSeconds: Long) = {
-    var probes : List[(String, Boolean, Int, StandardUnit)] = List()
-
+  def assertThatUpdatesAreRecent(df: DataFrame, currentTimeInSeconds: Long): Probe = {
     val lastUpdatedMedian: Array[Double] = df.stat.approxQuantile("last_updated", Array(0.5), 0.25)
     if (lastUpdatedMedian.length > 0) {
       val medianLastUpdateUnixTimestamp = lastUpdatedMedian(0)
@@ -48,70 +43,58 @@ object SmokeTest {
 
       val diffInSeconds = currentUnixTimestamp - medianLastUpdateUnixTimestamp
 
-      probes = probes :+ (("station-last-updated-age", diffInSeconds > 600, diffInSeconds.toInt, StandardUnit.Seconds))
+      Probe("station-last-updated-age", diffInSeconds > 600, diffInSeconds.toInt, StandardUnit.Seconds)
     }
 
-    probes
+    Probe("station-last-updated-age", failed = true, 999, StandardUnit.Seconds)
   }
 
-  def assertThatLatitudeAndLongitudeAreCorrectlyTyped(df: sql.DataFrame) = {
+  def assertThatLatitudeAndLongitudeAreCorrectlyTyped(df: sql.DataFrame): Probe = {
     var mistypedFields = 0
-    var misnamedFields = 0
-    var probes : List[(String, Boolean, Int, StandardUnit)] = List()
-
-    if(df.schema.fields(7).name != "latitude") {
-      misnamedFields = misnamedFields + 1
-    }
 
     if(df.schema.fields(7).dataType.typeName != "double") {
       mistypedFields = mistypedFields + 1
-    }
-
-    if(df.schema.fields(8).name != "longitude") {
-      misnamedFields = misnamedFields + 1
     }
 
     if(df.schema.fields(8).dataType.typeName != "double") {
       mistypedFields = mistypedFields + 1
     }
 
-    probes = probes:+(("misnamed-fields", misnamedFields > 0, misnamedFields, StandardUnit.Count))
-    probes = probes:+(("mistyped-fields", mistypedFields > 0, mistypedFields, StandardUnit.Count))
+    Probe("mistyped-fields", mistypedFields > 0, mistypedFields, StandardUnit.Count)
+  }
+  def assertThatLatitudeAndLongitudeAreCorrectlyNamed(df: sql.DataFrame): Probe = {
+    var misnamedFields = 0
 
-    //assert(df.schema.fields(7).name == "latitude", "field isn't called `latitude`")
-    //assert(df.schema.fields(7).dataType.typeName == "double", "field `latitude` is not a double")
-    //assert(df.schema.fields(8).name == "longitude", "field isn't called `longitude`")
-    //assert(df.schema.fields(8).dataType.typeName == "double", "field `longitude` is not a double")
+    if(df.schema.fields(7).name != "latitude") {
+      misnamedFields = misnamedFields + 1
+    }
 
-    probes
+    if(df.schema.fields(8).name != "longitude") {
+      misnamedFields = misnamedFields + 1
+    }
+
+    Probe("misnamed-fields", misnamedFields > 0, misnamedFields, StandardUnit.Count)
   }
 
-  def assertThatStationIdsAreUnique(df: sql.DataFrame) = {
-    var probes: List[(String, Boolean, Int, StandardUnit)] = List()
-
+  def assertThatStationIdsAreUnique(df: sql.DataFrame): Probe = {
     val stationIdsWithMoreThanOneRow = df.select("station_id").groupBy("station_id").agg(count("station_id") as "count").where("count > 1").count().toInt
-    probes = probes:+(("duplicated-station-ids", stationIdsWithMoreThanOneRow > 0, stationIdsWithMoreThanOneRow, StandardUnit.Count))
-    probes
+
+    Probe("duplicated-station-ids", stationIdsWithMoreThanOneRow > 0, stationIdsWithMoreThanOneRow, StandardUnit.Count)
   }
 
-  def runAssertions(df: DataFrame, cw: AmazonCloudWatch, currentTimeInSeconds: Long, jobFlowId: String) = {
-
-    val probes = List.concat(
+  def runAssertions(df: DataFrame, currentTimeInSeconds: Long) = List(
       assertThatStationIdsAreUnique(df),
       assertThatLatitudeAndLongitudeAreCorrectlyTyped(df),
-      assertThatLatitudeAndLongitudeAreNeverNull(df),
+      assertThatLatitudeAndLongitudeAreCorrectlyNamed(df),
+      assertThatLatitudeIsNeverNull(df),
+      assertThatLongitudeIsNeverNull(df),
       assertThatNoCountsAreNegative(df),
       assertThatUpdatesAreRecent(df, currentTimeInSeconds)
-    )
+  )
 
-    publishMetrics(cw, probes, jobFlowId)
-
-    probes
-  }
-
-  def publishMetrics(cw: AmazonCloudWatch, probes: List[(String, Boolean, Int, StandardUnit)], jobFlowId: String) = {
-    probes.map( probe => {
-      publishMetric(cw, probe._1, probe._3, probe._4, jobFlowId)
+  def publishMetrics(cw: AmazonCloudWatch, probes: List[Probe], jobFlowId: String): Unit = {
+    probes.foreach( probe => {
+      publishMetric(cw, probe.name, probe.value, probe.unit, jobFlowId)
     })
   }
 
@@ -163,23 +146,15 @@ object SmokeTest {
       .csv(inputFile)
       .persist(StorageLevel.DISK_ONLY)
     val cw = AmazonCloudWatchClientBuilder.defaultClient
-    val probes = runAssertions(output, cw, System.currentTimeMillis() / 1000, jobFlowId)
+    val probes = runAssertions(output, System.currentTimeMillis() / 1000)
 
-    val failures = probes.filter( probe => {
-      probe._2 == true
-    })
+    publishMetrics(cw, probes, jobFlowId)
 
-    val ageProbe = probes.filter( probe => {
-      probe._1 == "station-last-updated-age"
-    })
+    probes.filter( _.name == "station-last-updated-age").foreach(println)
+    val failedProbes: List[Probe] = probes.filter(_.failed)
 
-    output.unpersist()
-
-    println(ageProbe)
-
-    if(failures.length > 0) {
-      println(failures)
+    if (failedProbes.nonEmpty)
+      failedProbes.foreach(println)
       System.exit(1)
     }
-   }
 }
