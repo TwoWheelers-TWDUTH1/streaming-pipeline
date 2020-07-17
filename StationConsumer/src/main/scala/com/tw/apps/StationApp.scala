@@ -64,16 +64,17 @@ object StationApp {
       spark
     ).transform(citybikeV2StationStatusJson2DF(_, spark))
 
-    val allStationDF = nycStationDF
+    val allStationDS = nycStationDF
       .union(sfStationDF)
       .union(marseilleStationDF)
       .as[StationData]
-      .groupByKey(r=>r.station_id)
-      .reduceGroups((r1,r2)=>if (r1.last_updated > r2.last_updated) r1 else r2)
-      .map(_._2)
+
+    val mostUpdatedStationDS = StationAggregation.selectMostUpdatedStationData(allStationDS, spark)
+
+    mostUpdatedStationDS
       .writeStream
       .format("overwriteCSV")
-      .outputMode("complete")
+      .outputMode("update")
       .option("header", true)
       .option("truncate", false)
       .option("checkpointLocation", checkpointLocation)
