@@ -1,3 +1,4 @@
 bikes_available,docks_available,is_renting,is_returning,last_updated,station_id,name,latitude,longitude
 0,0,false,false,1594882600,0deb7e762d80f771360306ef132bce3d,Valencia St at 16th St,37.765052,-122.4218661
-11,12,true,true,1594882800,0deb7e762d80f771360306ef132bce3d,Valencia St at 16th St,37.765052,-122.4218661
+11,12,true,true,1594882601,0deb7e762d80f771360306ef132bce3d,Valencia St at 16th St,37.765052,-122.4218661
+11,12,true,true,1604882800,0deb7e762d80f771360306ef132bce3d,Valencia St at 16th St,37.765052,-122.4218661

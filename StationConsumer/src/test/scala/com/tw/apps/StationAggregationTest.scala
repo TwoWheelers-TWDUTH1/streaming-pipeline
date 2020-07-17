@@ -20,7 +20,7 @@ class StationAggregationTest extends AnyFeatureSpec with Matchers with GivenWhen
       val columns = Seq("bikes_available", "docks_available", "is_renting", "is_returning", "last_updated", "station_id", "name", "latitude", "longitude")
       val testStationData = Seq(
         (0, 0, false, false, 1594882600, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661),
-        (11, 12, true, true, 1594882800, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661)
+        (11, 12, true, true, 1594882601, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661)
       )
       val testStationDS = testStationData.toDF(columns:_*).as[StationData]
 
@@ -29,12 +29,12 @@ class StationAggregationTest extends AnyFeatureSpec with Matchers with GivenWhen
 
       Then("Only most updated data remained")
       val expectedStationData = Array(
-        StationData(11, 12, true, true, 1594882800, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661)
+        StationData(11, 12, true, true, 1594882601, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661)
       )
       outputDS.collect shouldBe expectedStationData
     }
 
-    ignore("Write aggregated station data to data sink") {
+    Scenario("Write aggregated station data to data sink") {
       Given("Sample station data")
       val inputDataPath = getClass.getResource("/data").toURI
       val schema = ScalaReflection.schemaFor[StationData].dataType.asInstanceOf[StructType]
@@ -54,12 +54,13 @@ class StationAggregationTest extends AnyFeatureSpec with Matchers with GivenWhen
       val outputQuery = outputDS.writeStream
         .format("memory")
         .queryName("Output")
-        .outputMode("append")
+        .outputMode("update")
         .start()
       outputQuery.processAllAvailable()
       val results = spark.sql("select * from Output").collect
       val expectedStationData = Array(
-        Row(11, 12, true, true, 1594882800, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661)
+        Row(11, 12, true, true, 1594882601, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661),
+        Row(11, 12, true, true, 1604882800, "0deb7e762d80f771360306ef132bce3d", "Valencia St at 16th St", 37.765052, -122.4218661)
       )
       results shouldBe (expectedStationData)
     }
