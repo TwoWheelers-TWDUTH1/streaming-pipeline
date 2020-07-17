@@ -216,7 +216,7 @@ nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.Stati
   --conf spark.executor.memory=1G \
   --conf spark.cores.max=1 \
   --conf spark.dynamicAllocation.maxExecutors=5 \
-  /tmp/tw-station-consumer_2.11-0.0.1.jar "${kafka_server}" "SSL" \
+  /tmp/tw-station-consumer_2.11-0.0.1.jar "${zk_broker_list}" "SSL" \
   1>/tmp/station-consumer-msk.log 2>/tmp/station-consumer-msk.error.log &
 
 nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.StationApp \
@@ -225,7 +225,7 @@ nohup spark-submit --master yarn --deploy-mode cluster --class com.tw.apps.Stati
   --driver-memory 1G \
   --conf spark.executor.memory=1G \
   --conf spark.cores.max=1 \
-  /tmp/tw-station-transformer-nyc_2.11-0.0.1.jar "${kafka_server}" "SSL" \
+  /tmp/tw-station-transformer-nyc_2.11-0.0.1.jar "${zk_broker_list}" "SSL" \
   1>/tmp/station-transformer-nyc-msk.log 2>/tmp/station-transformer-nyc-msk.error.log &
 
 echo "====Station Consumers Deployed===="
