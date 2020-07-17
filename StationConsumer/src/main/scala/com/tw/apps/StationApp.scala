@@ -90,7 +90,6 @@ object StationApp {
       .option("kafka.bootstrap.servers", stationKafkaBrokers)
       .option("subscribe", topic)
       .option("startingOffsets", "latest")
-      .option("auto.offset.reset", "smallest")
       .option("kafka.security.protocol", securityProtocol)
       .load()
       .selectExpr("CAST(value AS STRING) as raw_payload")
